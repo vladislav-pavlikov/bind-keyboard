@@ -1,0 +1,41 @@
+{
+  "name": "bind-keyboard",
+  "version": "0.0.1",
+  "main": "./dist/bind-keyboard.umd.cjs",
+  "module": "./dist/bind-keyboard.js",
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^12.9.1",
+    "@types/jest": "^29.5.6",
+    "@types/lodash": "^4.14.200",
+    "@types/node": "^20.8.7",
+    "@typescript-eslint/eslint-plugin": "^6.8.0",
+    "bun-types": "^1.0.7",
+    "eslint": "^8.52.0",
+    "eslint-config-standard-with-typescript": "^39.1.1",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-n": "^16.2.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "jest-environment-jsdom": "^29.7.0",
+    "lodash": "^4.17.21",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^3.6.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/bind-keyboard.js",
+      "require": "./dist/bind-keyboard.umd.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "bun test"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}
