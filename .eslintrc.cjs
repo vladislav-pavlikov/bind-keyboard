@@ -3,9 +3,13 @@ module.exports = {
     browser: true,
     es2021: true
   },
-  extends: "standard-with-typescript",
-  ignorePatterns: ['build', './eslintrc.cjs', 'vite.config.ts'],
-  include: ['src'],
+  extends: [
+    "standard-with-typescript",
+    'prettier',
+    'plugin:prettier/recommended'
+  ],
+  // ignorePatterns: ['build', './eslintrc.cjs', 'vite.config.ts'],
+  // include: ['src'],
   overrides: [
     {
       env: {
@@ -26,5 +30,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/strict-boolean-expressions': 'off',
     '@typescript-eslint/restrict-template-expressions': 'off',
+    '@typescript-eslint/prefer-nullish-coalescing': 'off'
+    // "prettier/prettier": ["error", { "endOfLine": "off" }]
   },
 }

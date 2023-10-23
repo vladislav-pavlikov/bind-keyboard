@@ -1,0 +1,16 @@
+# don't lint:
+node_modules
+
+# config files
+.eslintrc.js
+.eslintrc.cjs
+.prettierrc.js
+vite.config.ts
+
+# don't lint build output
+dist
+build
+lib
+# don't lint unit-test coverage
+coverage
+

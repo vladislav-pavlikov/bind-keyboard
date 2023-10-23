@@ -1,12 +1,12 @@
-import type { EventType, KeyСombination } from '../types'
+import type { EventType, KeyСombination } from "../types";
 
 class KeybindEntry {
-  constructor (
+  constructor(
     public readonly keyCombination: KeyСombination,
     public readonly callback: EventListener,
     public readonly eventType: EventType,
-    public readonly preventRepeat: boolean
+    public readonly preventRepeat: boolean,
   ) {}
 }
 
-export default KeybindEntry
+export default KeybindEntry;

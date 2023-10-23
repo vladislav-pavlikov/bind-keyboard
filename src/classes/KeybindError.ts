@@ -1,8 +1,8 @@
 class KeybindError extends Error {
-  constructor (message: string) {
-    super(message)
-    this.name = 'KeybindError'
+  constructor(message: string) {
+    super(message);
+    this.name = "KeybindError";
   }
 }
 
-export default KeybindError
+export default KeybindError;
