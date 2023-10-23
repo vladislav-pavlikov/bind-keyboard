@@ -1,13 +1,15 @@
 {
   "name": "bind-keyboard",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations",
   "author": "Vladislav Pavlikov<https://gitlab.com/pavlikov.deal>",
   "type": "module",
   "main": "./dist/bind-keyboard.umd.cjs",
   "module": "./dist/bind-keyboard.js",
   "types": "./index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "keyboard",
     "keybinding",
