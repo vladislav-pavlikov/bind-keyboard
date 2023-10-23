@@ -62,7 +62,7 @@
     "prepublishOnly": "npm run build"
   },
   "publishConfig": {
-    "@bind-keyboard:registry": "gitlab.com/api/v4/projects/51485196/packages/npm"
+    "bind-keyboard:registry": "gitlab.com/api/v4/projects/51485196/packages/npm"
   },
   "type": "module",
   "types": "./dist/index.d.ts"
