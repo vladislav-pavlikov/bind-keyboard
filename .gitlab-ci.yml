@@ -8,7 +8,7 @@ build:
   # when: manual
   script:
     - npm i
-    - npm publish
+    - NPM_TOKEN=${NPM_TOKEN} npm publish
     - echo "-- build completed succesfully"
   only:
     - main
