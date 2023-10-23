@@ -8,8 +8,6 @@ module.exports = {
     'prettier',
     'plugin:prettier/recommended'
   ],
-  // ignorePatterns: ['build', './eslintrc.cjs', 'vite.config.ts'],
-  // include: ['src'],
   overrides: [
     {
       env: {
@@ -31,6 +29,5 @@ module.exports = {
     '@typescript-eslint/strict-boolean-expressions': 'off',
     '@typescript-eslint/restrict-template-expressions': 'off',
     '@typescript-eslint/prefer-nullish-coalescing': 'off'
-    // "prettier/prettier": ["error", { "endOfLine": "off" }]
   },
 }

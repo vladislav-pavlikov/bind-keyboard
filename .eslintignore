@@ -8,6 +8,7 @@ node_modules
 vite.config.ts
 package.json
 tsconfig.json
+README.md
 
 # don't lint build output
 dist
