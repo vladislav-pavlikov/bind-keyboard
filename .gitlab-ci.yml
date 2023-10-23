@@ -1,4 +1,4 @@
-image: node:18
+image: node:latest
 
 stages:
   - build
@@ -7,8 +7,9 @@ build:
   stage: build
   when: manual
   script:
-    - npm i
-    - NPM_TOKEN=${NPM_TOKEN} npm publish
+    - echo _auth=$NPM_PUBLSH_KEY >> .npmrc
+    - npm ci
+    - npm publish
     - echo "-- build completed succesfully"
   only:
     - main
