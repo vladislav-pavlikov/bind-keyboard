@@ -1,5 +1,7 @@
 import type { EventType, KeyСombination } from "../types";
 
+console.log(1);
+
 class KeybindEntry {
   constructor(
     public readonly keyCombination: KeyСombination,
