@@ -57,7 +57,7 @@
     "preview": "vite preview",
     "test": "bun test",
     "lint": "eslint 'src/**/*.{js,ts,jsx,tsx}' --quiet --fix",
-    "prepare": "husky install",
+    "postuninstall": "husky install",
     "prepublishOnly": "bun run build"
   },
   "publishConfig": {

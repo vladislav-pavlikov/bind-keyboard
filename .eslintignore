@@ -9,6 +9,7 @@ vite.config.ts
 package.json
 tsconfig.json
 README.md
+happydom.ts
 
 # don't lint build output
 dist
