@@ -7,9 +7,11 @@ build:
   stage: build
   when: manual
   script:
-    - echo _auth=$NPM_PUBLSH_KEY >> .npmrc
     - npm i
+    - echo _auth=$NPM_PUBLSH_KEY >> .npmrc
+    - echo email=<youremail> >> .npmrc
+    - echo always-auth=true >> .npmrc
+    - cat .npmrc
     - npm publish
-    - echo "-- build completed succesfully"
   only:
     - main
