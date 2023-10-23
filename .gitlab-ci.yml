@@ -1,4 +1,4 @@
-image: oven/bun
+image: node:18
 
 stages:
   - build
@@ -7,8 +7,8 @@ build:
   stage: build
   when: manual
   script:
-    - bun i
-    - bun run publish
+    - npm i
+    - npm publish
     - echo "-- build completed succesfully"
   only:
     - main
