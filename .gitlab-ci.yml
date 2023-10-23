@@ -5,7 +5,7 @@ stages:
 
 build:
   stage: build
-  when: manual
+  # when: manual
   script:
     - npm i
     - npm publish
