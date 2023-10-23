@@ -17,7 +17,7 @@
     "eslint-plugin-n": "^16.2.0",
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-promise": "^6.1.1",
-    "husky": "^8.0.3",
+    "husky": "^8.0.0",
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^15.0.2",
     "lodash": "^4.17.21",
@@ -40,19 +40,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "bun test",
-    "lint": "eslint 'src/**/*.{js,ts,jsx,tsx}' --quiet --fix"
+    "lint": "eslint 'src/**/*.{js,ts,jsx,tsx}' --quiet --fix",
+    "prepare": "husky install"
   },
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "lint-staged": {
-    "*.{js,ts,jsx,tsx}": [
-      "bun run lint",
-      "git add"
-    ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  }
+  "types": "./dist/index.d.ts"
 }

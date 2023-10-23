@@ -1,6 +1,6 @@
 import compact from "lodash/compact";
 import isString from "lodash/isString";
-import last from "lodash/last"
+import last from "lodash/last";
 
 import type { KeyСombination, KeyСombinationConstruct } from "../types";
 import getKeyСombination from "./getKeyСombination";

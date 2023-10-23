@@ -6,6 +6,8 @@ node_modules
 .eslintrc.cjs
 .prettierrc.js
 vite.config.ts
+package.json
+tsconfig.json
 
 # don't lint build output
 dist
@@ -14,3 +16,4 @@ lib
 # don't lint unit-test coverage
 coverage
 
+bun.lockb
