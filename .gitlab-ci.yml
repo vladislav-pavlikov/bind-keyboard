@@ -8,7 +8,7 @@ build:
   when: manual
   script:
     - npm ci
-    - echo _auth=$NPM_TOKEN >> .npmrc
+    - echo ${REGISTRY}_auth=$NPM_TOKEN >> .npmrc
     - echo email=$NPM_EMAIL >> .npmrc
     - echo always-auth=true >> .npmrc
     - cat .npmrc
