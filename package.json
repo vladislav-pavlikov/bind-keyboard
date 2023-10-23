@@ -3,8 +3,11 @@
   "version": "0.0.2",
   "description": "Lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations",
   "author": "Vladislav Pavlikov<https://gitlab.com/pavlikov.deal>",
+  "type": "module",
   "main": "./dist/bind-keyboard.umd.cjs",
   "module": "./dist/bind-keyboard.js",
+  "types": "./index.d.ts",
+  "files": ["dist"],
   "keywords": [
     "keyboard",
     "keybinding",
@@ -43,15 +46,6 @@
     "vite": "^4.4.5",
     "vite-plugin-dts": "^3.6.0"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/bind-keyboard.js",
-      "require": "./dist/bind-keyboard.umd.cjs"
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -63,7 +57,5 @@
   },
   "publishConfig": {
     "bind-keyboard:registry": "gitlab.com/api/v4/projects/51485196/packages/npm"
-  },
-  "type": "module",
-  "types": "./index.d.ts"
+  }
 }
