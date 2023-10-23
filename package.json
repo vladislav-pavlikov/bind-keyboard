@@ -59,7 +59,8 @@
     "test": "bun test",
     "lint": "eslint 'src/**/*.{js,ts,jsx,tsx}' --quiet --fix",
     "postuninstall": "husky install",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "publish": "npm publish"
   },
   "publishConfig": {
     "@bind-keyboard:registry": "gitlab.com/api/v4/projects/51485196/packages/npm"
