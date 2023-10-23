@@ -2,9 +2,9 @@
 
 <div align="center">
 [![npm](https://img.shields.io/npm/v/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
-[![npm downloads](https://img.shields.io/npm/dm/react-hook-form.svg?style=for-the-badge)](https://www.npmjs.com/package/bind-keyboard)
-[![npm](https://img.shields.io/npm/dt/react-hook-form.svg?style=for-the-badge)](https://www.npmjs.com/package/bind-keyboard)
-[![npm](https://img.shields.io/bundlephobia/minzip/react-hook-form?style=for-the-badge)](https://bundlephobia.com/result?p=bind-keyboard)
+[![npm downloads](https://img.shields.io/npm/dm/bind-keyboard.svg?style=for-the-badge)](https://www.npmjs.com/package/bind-keyboard)
+[![npm](https://img.shields.io/npm/dt/bind-keyboard.svg?style=for-the-badge)](https://www.npmjs.com/package/bind-keyboard)
+[![npm](https://img.shields.io/bundlephobia/minzip/bind-keyboard?style=for-the-badge)](https://bundlephobia.com/result?p=bind-keyboard)
 [![Coverage Status](https://img.shields.io/coveralls/github/bluebill1049/bind-keyboard/master?style=for-the-badge)](https://coveralls.io/gitlab/bluebill1049/bind-keyboard?branch=master)
 
 ![GitLab (self-managed)](https://img.shields.io/gitlab/license/bind-keyboard%2Fbind-keyboard?link=https%3A%2F%2Fgitlab.com%2Fbind-keyboard%2Fbind-keyboard%2F-%2Fblob%2Fmain%2FLICENSE)
