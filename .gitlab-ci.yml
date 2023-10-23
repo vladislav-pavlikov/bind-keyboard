@@ -1,14 +1,13 @@
 image: node:latest
 
 stages:
-  - build
+  - publish
 
-build:
-  stage: build
+publish_npm:
+  stage: publish
   when: manual
   script:
     - npm ci
-    - cat .npmrc
     - npm publish
   only:
     - main

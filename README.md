@@ -1,9 +1,15 @@
 # bind-keyboard
 
+<div align="center">
 [![npm](https://img.shields.io/npm/v/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
-<!-- [![License](https://img.shields.io/github/license/your-username/bind-keyboard)](https://gitlab.com/bind-keyboard/bind-keyboard/-/blob/main/LICENSE) -->
+[![npm downloads](https://img.shields.io/npm/dm/react-hook-form.svg?style=for-the-badge)](https://www.npmjs.com/package/bind-keyboard)
+[![npm](https://img.shields.io/npm/dt/react-hook-form.svg?style=for-the-badge)](https://www.npmjs.com/package/bind-keyboard)
+[![npm](https://img.shields.io/bundlephobia/minzip/react-hook-form?style=for-the-badge)](https://bundlephobia.com/result?p=bind-keyboard)
+[![Coverage Status](https://img.shields.io/coveralls/github/bluebill1049/bind-keyboard/master?style=for-the-badge)](https://coveralls.io/gitlab/bluebill1049/bind-keyboard?branch=master)
+
 ![GitLab (self-managed)](https://img.shields.io/gitlab/license/bind-keyboard%2Fbind-keyboard?link=https%3A%2F%2Fgitlab.com%2Fbind-keyboard%2Fbind-keyboard%2F-%2Fblob%2Fmain%2FLICENSE)
 
+</div>
 
 `bind-keyboard` is a lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations. It's designed to simplify handling keyboard events in your web applications.
 
@@ -27,14 +33,14 @@ npm install bind-keyboard
 To use "bind-keyboard," you need to create an instance of the **`BindKeyboard`** class. This instance can be used to add and manage keyboard event bindings. Here's a basic example:
 
 ```ts
-import { BindKeyboard } from 'bind-keyboard';
+import { BindKeyboard } from "bind-keyboard";
 
 // Create a BindKeyboard instance
 const bindKeyboard = new BindKeyboard();
 
 // Add a key binding for ctrl+a
-bindKeyboard.add('ctrl+a', (event) => {
-  console.log('ctrl+a was pressed');
+bindKeyboard.add("ctrl+a", (event) => {
+  console.log("ctrl+a was pressed");
 });
 ```
 
