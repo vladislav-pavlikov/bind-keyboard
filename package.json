@@ -6,7 +6,7 @@
   "type": "module",
   "main": "./dist/bind-keyboard.umd.cjs",
   "module": "./dist/bind-keyboard.js",
-  "types": "./index.d.ts",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
