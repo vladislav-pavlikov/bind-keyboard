@@ -8,6 +8,7 @@ build:
   when: manual
   script:
     - bun i
+    - CI=false bun run prepare
     - npm publish
     - echo "-- build completed succesfully"
   only:
