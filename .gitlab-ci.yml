@@ -8,9 +8,6 @@ build:
   when: manual
   script:
     - npm ci
-    - echo ${REGISTRY}_auth=$NPM_TOKEN >> .npmrc
-    - echo email=$NPM_EMAIL >> .npmrc
-    - echo always-auth=true >> .npmrc
     - cat .npmrc
     - npm publish
   only:
