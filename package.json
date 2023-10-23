@@ -56,8 +56,5 @@
     "lint": "eslint 'src/**/*.{js,ts,jsx,tsx}' --quiet --fix",
     "postinstall": "husky install",
     "prepublishOnly": "npm run build"
-  },
-  "publishConfig": {
-    "bind-keyboard:registry": "gitlab.com/api/v4/projects/51485196/packages/npm"
   }
 }
