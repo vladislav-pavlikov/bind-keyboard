@@ -83,6 +83,8 @@ class BindKeyboard {
     }
   };
 
+  // TODO: add 'then' shortcuts, like 'g then o'
+  // TODO: add 'or' shortcuts, like 'shift + g or o'
   /**
    * Handles keyboard event listener. Prevents intercepting key events when typing in input fields
    * and manages execution of callback functions based on key combination and event type.

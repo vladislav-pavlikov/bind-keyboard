@@ -6,7 +6,7 @@ describe("Keybind Library Tests", () => {
   });
 
   it("window is defined", () => {
-    expect(window).not.toBeDefined();
+    expect(window).toBeDefined();
   });
 
   it("should add key binding and find it by .getKeybind", () => {
