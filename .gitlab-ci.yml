@@ -8,7 +8,7 @@ build:
   when: manual
   script:
     - echo _auth=$NPM_PUBLSH_KEY >> .npmrc
-    - npm ci
+    - npm i
     - npm publish
     - echo "-- build completed succesfully"
   only:
