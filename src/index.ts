@@ -229,5 +229,5 @@ class BindKeyboard {
   getTarget = (): EventTarget => this.#target;
 }
 
-export default new BindKeyboard();
+export default BindKeyboard;
 export { BindKeyboard, Classes, helpers };
