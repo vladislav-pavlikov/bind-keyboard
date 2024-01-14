@@ -1,4 +1,6 @@
-import bindKeyboard from "./";
+import BindKeyboard from "./";
+
+const bindKeyboard = new BindKeyboard();
 
 describe("Keybind Library Tests", () => {
   beforeEach(() => {

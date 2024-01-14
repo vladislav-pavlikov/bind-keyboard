@@ -230,4 +230,5 @@ class BindKeyboard {
 }
 
 export default BindKeyboard;
+
 export { BindKeyboard, Classes, helpers };
