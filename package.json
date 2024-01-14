@@ -1,6 +1,6 @@
 {
   "name": "bind-keyboard",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations",
   "type": "module",
   "main": "./dist/bind-keyboard.umd.cjs",
