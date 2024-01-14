@@ -1,6 +1,7 @@
 import type * as Types from "./types";
 import * as Classes from "./classes";
 import * as helpers from "./helpers";
+import { isBoolean } from "lodash";
 
 /**
  * Manages keyboard event bindings and execution of callback functions for specific key combinations.
@@ -22,6 +23,7 @@ class BindKeyboard {
    * @param {EventTarget} [props.target=globalThis] - The target element for listening to keyboard events (optional, default is window).
    * @param {Types.DebugLevel} [props.debug=0] - The level of debugging output (0 - None, 1 - Only exsisting bindings, 2 - All key events) (optional, default is 0).
    * @param {boolean} [props.checkInputElements=false] - Whether to prevent intercepting key events when typing in input fields (optional, default is false).
+   * @param {boolean} [props.autostart=true] - Whether to prevent intercepting key events when typing in input fields (optional, default is false).
    * @param {Types.KeybindInitializer[]} [props.initialBindings=undefined] - Initial key bindings to set upon instantiation (optional, default is undefined).
    */
   constructor(props: Types.ConstructorProps = {}) {
@@ -45,7 +47,9 @@ class BindKeyboard {
       }
     }
 
-    this.startListners();
+    if (isBoolean(props.autostart) ? props.autostart : true) {
+      this.startListners();
+    }
   }
 
   /**

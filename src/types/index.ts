@@ -20,4 +20,5 @@ export interface ConstructorProps {
   debug?: DebugLevel;
   initialBindings?: KeybindInitializer[];
   checkInputElements?: boolean;
+  autostart?: boolean;
 }
