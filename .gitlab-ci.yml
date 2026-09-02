@@ -1,13 +1,31 @@
-image: node:latest
+image: node:22
 
 stages:
+  - test
   - publish
+
+# The project standardizes on Bun for installs and the test runner
+# (bunfig.toml, bun.lockb) — `bun install` is what CONTRIBUTING and the
+# pre-commit hook both use, so CI installs the same way instead of drifting
+# from a separate package-lock.json.
+before_script:
+  - curl -fsSL https://bun.sh/install | bash -s "bun-v1.2.18"
+  - export PATH="$HOME/.bun/bin:$PATH"
+  - bun install --frozen-lockfile
+
+test:
+  stage: test
+  script:
+    - npm run lint
+    - npx tsc --noEmit
+    - bun test
+    - npm run build
+    - npm run bundlesize
 
 publish_npm:
   stage: publish
   when: manual
   script:
-    - npm ci
     - npm publish
   only:
     - main
