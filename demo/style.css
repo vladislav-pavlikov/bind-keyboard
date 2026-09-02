@@ -41,14 +41,16 @@ body {
 
 .page-header-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px 12px;
   margin-bottom: 4px;
 }
 
 .page-header h1 {
   margin: 0;
+  font-size: 28px;
   font-family: var(--mono);
 }
 
@@ -107,6 +109,21 @@ body {
   color: var(--text-dim);
 }
 
+/* Shown only on narrow viewports (a proxy for "probably no physical
+   keyboard") — the demo itself is driven entirely by real keydown/keyup
+   events, so it's worth being upfront that a touchscreen alone won't
+   trigger anything here. */
+.mobile-note {
+  display: none;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--panel);
+  border: 1px solid var(--key-border);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
 .keyboard {
   display: inline-flex;
   flex-direction: column;
@@ -115,6 +132,15 @@ body {
   background: var(--panel);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  /* The widest row (the number row) is ~740px at full size — wider than its
+     own column at most viewport widths, not just narrow ones (the two-
+     column desktop layout only gives the keyboard column ~2/3 of a 1100px
+     row). Rather than trying to reflow individual keys to fit every
+     possible width, cap the whole board at its container's width and let
+     it scroll horizontally — same pattern already used for the code
+     blocks below. */
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .kb-row {
@@ -565,4 +591,58 @@ kbd {
 .tok-comment {
   color: #6a9955;
   font-style: italic;
+}
+
+/* --- Mobile ------------------------------------------------------------ */
+
+@media (max-width: 800px) {
+  body {
+    padding: 16px;
+  }
+
+  .mobile-note {
+    display: block;
+  }
+
+  .code-sample,
+  .features {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 22px;
+  }
+
+  .keyboard {
+    padding: 10px;
+    gap: 4px;
+    border-radius: 8px;
+  }
+
+  .kb-row {
+    gap: 4px;
+  }
+
+  .key {
+    height: 32px;
+    min-width: 26px;
+    padding: 0 4px;
+    font-size: 10px;
+    border-radius: 4px;
+  }
+
+  .key[data-width="1.5"] {
+    min-width: 40px;
+  }
+
+  .key[data-width="2"] {
+    min-width: 52px;
+  }
+
+  #combo-text {
+    font-size: 15px;
+    min-width: 0;
+  }
 }
