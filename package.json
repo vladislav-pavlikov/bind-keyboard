@@ -70,7 +70,8 @@
     "prepack": "pinst --disable",
     "postpack": "pinst --enable",
     "prepublishOnly": "npm run build",
-    "bundlesize": "npm run build && node scripts/check-bundle-size.mjs"
+    "bundlesize": "npm run build && node scripts/check-bundle-size.mjs",
+    "check-exports": "npm run build && node scripts/check-exports.mjs"
   },
   "repository": "https://gitlab.com/bind-keyboard/bind-keyboard.git",
   "homepage": "https://gitlab.com/bind-keyboard/bind-keyboard",
