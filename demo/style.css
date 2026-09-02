@@ -391,13 +391,118 @@ kbd {
   margin-bottom: 12px;
 }
 
-.code-sample pre {
+/* Editor/terminal chrome — deliberately a fixed dark palette regardless of
+   the page's own light/dark theme, the way embedded code blocks almost
+   always look on real docs sites (VS Code Dark+ inspired). */
+.code-window {
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1e1e1e;
+  border: 1px solid #333;
+}
+
+.code-window-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot-red {
+  background: #ff5f56;
+}
+
+.dot-yellow {
+  background: #ffbd2e;
+}
+
+.dot-green {
+  background: #27c93f;
+}
+
+.code-window-filename {
+  margin-left: 6px;
+  font: 11px var(--mono);
+  color: #8a8a8a;
+}
+
+.code-window-body {
   margin: 0;
+  padding: 14px 18px;
   overflow-x: auto;
 }
 
-.code-sample code {
+.code-window-body code {
+  display: block;
   font: 13px/1.6 var(--mono);
-  color: var(--text);
+  color: #d4d4d4;
   white-space: pre;
+}
+
+/* Terminal: a generated "$ " prompt (CSS content, so it's never selected or
+   copied — the Copy button copies just the raw command). */
+.code-window-body--terminal code::before {
+  content: "$ ";
+  color: #6a9955;
+  user-select: none;
+}
+
+/* Numbered editor view: each line is its own block so a generated line
+   number can sit in a left gutter — also CSS content, excluded from
+   selection/copy the same way the terminal prompt is. */
+.code-window-body--numbered code {
+  counter-reset: line;
+}
+
+.code-window-body--numbered .code-line {
+  display: block;
+  position: relative;
+  padding-left: 2.75em;
+}
+
+.code-window-body--numbered .code-line::before {
+  counter-increment: line;
+  content: counter(line);
+  position: absolute;
+  left: 0;
+  width: 2.25em;
+  text-align: right;
+  color: #5a5a5a;
+  user-select: none;
+}
+
+/* Hand-authored token coloring for the fixed code-sample template (see
+   demo/main.ts) — not a general syntax highlighter, just this one snippet. */
+.tok-keyword,
+.tok-bool {
+  color: #569cd6;
+}
+
+.tok-type {
+  color: #4ec9b0;
+}
+
+.tok-var {
+  color: #9cdcfe;
+}
+
+.tok-func {
+  color: #dcdcaa;
+}
+
+.tok-string {
+  color: #ce9178;
+}
+
+.tok-comment {
+  color: #6a9955;
+  font-style: italic;
 }
