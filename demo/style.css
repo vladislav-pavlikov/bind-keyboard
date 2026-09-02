@@ -202,6 +202,26 @@ body {
   box-shadow: 0 0 16px rgba(255, 138, 61, 0.6);
 }
 
+/* Caps Lock: a small LED dot above the label, the way real Mac keyboards
+   show it — off by default, lit while Caps Lock is actually toggled on. */
+.key--capslock {
+  flex-direction: column;
+  gap: 3px;
+}
+
+.caps-lock-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--key-border);
+  transition: background 120ms ease;
+}
+
+.caps-lock-dot.active {
+  background: var(--key-pressed);
+  box-shadow: 0 0 6px rgba(255, 138, 61, 0.7);
+}
+
 .combo-readout {
   display: flex;
   align-items: center;

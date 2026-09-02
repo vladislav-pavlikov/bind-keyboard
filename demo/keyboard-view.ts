@@ -112,6 +112,25 @@ const updateHighlighting = (): void => {
   }
 };
 
+// Caps Lock is a toggle, not a held modifier — the only reliable way to
+// read its current state is KeyboardEvent.getModifierState("CapsLock") on
+// an actual event, there's no way to query it up front. It stays at its
+// (inactive) default until the visitor's first keypress; nothing the page
+// can do about that.
+let capsLockActive = false;
+
+const applyCapsLockIndicator = (): void => {
+  const dot = keyElementsByCode
+    .get("CapsLock")
+    ?.querySelector<HTMLElement>(".caps-lock-dot");
+  dot?.classList.toggle("active", capsLockActive);
+};
+
+const updateCapsLockIndicator = (ev: KeyboardEvent): void => {
+  capsLockActive = ev.getModifierState("CapsLock");
+  applyCapsLockIndicator();
+};
+
 export const renderKeyboard = (
   container: HTMLElement,
   isMac: boolean,
@@ -126,8 +145,22 @@ export const renderKeyboard = (
     for (const { code, label, width } of row) {
       const keyEl = document.createElement("div");
       keyEl.className = "key";
-      keyEl.textContent = label;
       if (width) keyEl.dataset.width = width;
+
+      // Real Mac keyboards show a small LED dot above the label, lit while
+      // Caps Lock is active — the only key here whose visual state depends
+      // on anything besides "is it currently pressed".
+      if (code === "CapsLock") {
+        keyEl.classList.add("key--capslock");
+        const dot = document.createElement("span");
+        dot.className = "caps-lock-dot";
+        const labelEl = document.createElement("span");
+        labelEl.textContent = label;
+        keyEl.append(dot, labelEl);
+      } else {
+        keyEl.textContent = label;
+      }
+
       rowEl.appendChild(keyEl);
       keyElementsByCode.set(code, keyEl);
     }
@@ -136,6 +169,7 @@ export const renderKeyboard = (
   }
 
   updateHighlighting();
+  applyCapsLockIndicator();
 };
 
 const KEY_MODES: readonly KeyMode[] = ["key", "code"];
@@ -256,12 +290,14 @@ document.addEventListener("keydown", (ev) => {
   pressedCodes.add(ev.code);
   updateHighlighting();
   updateComboText(ev);
+  updateCapsLockIndicator(ev);
 });
 
 document.addEventListener("keyup", (ev) => {
   pressedCodes.delete(ev.code);
   updateHighlighting();
   updateComboText(ev);
+  updateCapsLockIndicator(ev);
 });
 
 // Avoid keys (or the readout) getting stuck mid-combo if focus leaves the
