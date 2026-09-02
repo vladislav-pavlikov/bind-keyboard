@@ -2,6 +2,7 @@ import BindKeyboard from "../src";
 import { getElement } from "./dom";
 import { renderShortcutsInto } from "./shortcuts-list";
 import {
+  isAnyOverlayOpen,
   notifyOverlayClosed,
   notifyOverlayOpened,
   registerOverlayScopeHandle,
@@ -322,6 +323,13 @@ requestAnimationFrame(tick);
 const gameOverlayEl = getElement<HTMLElement>("#game-shortcuts-overlay");
 
 const openGameOverlay = (): void => {
+  // In practice this button is unreachable while the main demo's own
+  // overlay is open (that one's a full-viewport modal too, so it's what
+  // any click would actually land on) — this guard is here for the same
+  // reason bindings.ts's openOverlay has one: consistency, and in case
+  // that ever stops being true (e.g. a future keyboard trigger for this
+  // overlay).
+  if (isAnyOverlayOpen()) return;
   gameOverlayEl.hidden = false;
   notifyOverlayOpened("game-shortcuts");
 };

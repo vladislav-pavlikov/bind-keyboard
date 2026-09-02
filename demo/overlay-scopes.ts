@@ -44,3 +44,15 @@ export const notifyOverlayClosed = (overlayId: string): void => {
     });
   }
 };
+
+// Both overlays are full-viewport modals, so a click can never reach the
+// *other* one's own trigger while one is already open — the open overlay
+// physically covers it. A keyboard shortcut isn't stopped by CSS z-index
+// the same way, though: "?" is deliberately unscoped (see bindings.ts) so
+// it still works to open the main overlay while "keyboard" itself is
+// suspended, which also means it doesn't check anything before firing —
+// including whether the *game's* overlay happens to already be open. Each
+// open* function below guards against exactly that, so a stray "?" (or
+// any future overlay trigger) can never stack a second modal on top of
+// the one already showing.
+export const isAnyOverlayOpen = (): boolean => openOverlayIds.size > 0;

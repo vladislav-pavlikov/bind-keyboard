@@ -3,17 +3,22 @@ import { getElement } from "./dom";
 import { currentKeyMode } from "./keyboard-view";
 import { renderShortcutsInto } from "./shortcuts-list";
 import {
+  isAnyOverlayOpen,
   notifyOverlayClosed,
   notifyOverlayOpened,
   registerOverlayScopeHandle,
 } from "./overlay-scopes";
 
 // --- Demo bindings + BindKeyboard instance ----------------------------------
-// The demo's own non-overlay bindings (select all/undo/toggle theme, below)
-// live under the "keyboard" scope, active by default and suspended while
-// *either* this page's overlay is open (see ./overlay-scopes) — "?" (opens
-// this overlay) and "escape" (closes it) stay unscoped so they keep working
-// regardless.
+// Select all/undo (below) live under the "keyboard" scope, active by
+// default and suspended while *either* this page's overlay is open (see
+// ./overlay-scopes) — they act on the page's own content, which isn't
+// what a visitor is looking at with a popup open. "?" (opens this
+// overlay), "escape" (closes it), and toggle theme all stay unscoped:
+// the first two need to keep working regardless to control the overlay
+// at all, and the theme is a page-wide preference that's just as
+// relevant with a popup open (both popups use the same light/dark
+// variables, so it repaints them too).
 
 // Reassigned on every rebuild (see main.ts's rebuildBindKeyboard) — the
 // scope handle below is registered once, at module load, but always needs
@@ -28,6 +33,10 @@ registerOverlayScopeHandle({
 const overlayEl = getElement<HTMLElement>("#shortcuts-overlay");
 
 const openOverlay = (): void => {
+  // "?" is unscoped (see above), so it fires even while the *game's*
+  // overlay is already open — without this, it would stack this overlay
+  // on top of that one instead of doing nothing.
+  if (isAnyOverlayOpen()) return;
   overlayEl.hidden = false;
   notifyOverlayOpened("main-shortcuts");
 };
@@ -56,12 +65,12 @@ const flashShortcut = (keyCombination: string): void => {
 // (see BindKeyboard#resolveEntry) — while "keyboard" is suspended (a popup
 // open), nothing registered for that combination fires at all, including
 // a scoped callback's own ev.preventDefault(). Without this, opening a
-// popup would let the browser's own Cmd+A ("Select All" on the page) or
-// Cmd+/ take over again — worse than doing nothing. This unscoped
-// companion fires *instead of* the scoped one exactly when "keyboard"
-// isn't active (an active scope's own entry always wins over an unscoped
-// one for the same combination — see the README's Scopes section), so
-// between the two, preventDefault always happens either way.
+// popup would let the browser's own Cmd+A actually "Select All" the page
+// again — worse than doing nothing. This unscoped companion fires
+// *instead of* the scoped one exactly when "keyboard" isn't active (an
+// active scope's own entry always wins over an unscoped one for the same
+// combination — see the README's Scopes section), so between the two,
+// preventDefault always happens either way.
 const preventBrowserDefaultWhileSuspended = (
   bindKeyboard: BindKeyboard,
   combo: string,
@@ -120,9 +129,8 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     },
     true,
     "keydown",
-    { description: "Toggle theme", scope: "keyboard" },
+    { description: "Toggle theme" },
   );
-  preventBrowserDefaultWhileSuspended(bindKeyboard, "cmdOrCtrl+/");
 
   const [closeShortcut] = bindKeyboard.add(
     "escape",
