@@ -7,6 +7,8 @@
 - `add()` now warns (under `debug`) when a registered combination commonly collides with a browser/OS shortcut (e.g. `ctrl+p` for Print) — informational only, never blocks registration.
 - Removed the unimplemented chord/sequence `TODO`s from the source; noted as a known limitation in the README instead.
 - Fixed the grammar of the "no key or modifier provided" error message.
+- Fixed a lone modifier press (e.g. tapping Ctrl by itself) producing a combination like `"ctrl + control"`/`"ctrl + controlleft"` instead of plain `"ctrl"` — a binding registered as `"ctrl"` never matched a real standalone press of that key. Affected every modifier under `keyMode: "code"`, and `ctrl` specifically under `keyMode: "key"`.
+- The demo page's on-screen keyboard now matches the viewer's platform (Mac vs Windows/Linux) — correct `⌘`/`⌥` symbols, bottom-row key order, and `Delete`/`Return` labels on Mac — with auto-detection and a manual toggle.
 
 ## 0.1.0
 
