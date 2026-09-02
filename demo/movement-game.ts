@@ -1,6 +1,11 @@
 import BindKeyboard from "../src";
 import { getElement } from "./dom";
 import { renderShortcutsInto } from "./shortcuts-list";
+import {
+  notifyOverlayClosed,
+  notifyOverlayOpened,
+  registerOverlayScopeHandle,
+} from "./overlay-scopes";
 
 // --- Bonus movement demo -----------------------------------------------------
 // Everything here runs on its own, separate BindKeyboard instance:
@@ -150,8 +155,15 @@ const registerHeldAction = (
       },
       true,
       "keydown",
-      { description },
+      { description, scope: "game" },
     );
+    // Deliberately unscoped — a release should always clear "is this key
+    // held" state, even while the "game" scope is suspended (a game
+    // overlay is open). Otherwise holding a key into that moment, then
+    // releasing it while the overlay is up, would leave the character
+    // moving forever: the press never re-fires once the scope re-enables
+    // (nothing is still "pressed"), but nothing would ever clear the flag
+    // either.
     bindKeyboard.add(
       combo,
       () => {
@@ -184,7 +196,7 @@ const registerMomentaryAction = (
       },
       true,
       "keydown",
-      { description },
+      { description, scope: "game" },
     );
   }
 };
@@ -261,6 +273,19 @@ registerMomentaryAction(
   },
 );
 
+// Every action above lives under the "game" scope, active by default —
+// suspended while either overlay is open (see ./overlay-scopes), so a key
+// held into that moment can't keep steering the character behind it.
+registerOverlayScopeHandle({
+  disable: () => {
+    bindKeyboard.disableScope("game");
+  },
+  enable: () => {
+    bindKeyboard.enableScope("game");
+  },
+});
+bindKeyboard.enableScope("game");
+
 const tick = (): void => {
   if (movingLeft && !movingRight) {
     x = clampX(x - MOVE_SPEED);
@@ -285,30 +310,49 @@ setPosition();
 requestAnimationFrame(tick);
 
 // --- Bindings popup ----------------------------------------------------------
-// Same "?" overlay pattern as the main demo above, but scoped to this
+// Same "?" overlay pattern as the main demo above, restricted to this
 // instance's own bindings and opened by a click instead of a key — "?" is
 // already taken by the main demo's own overlay, and this page already has
 // two independent BindKeyboard instances quietly listening at once; a third
 // meaning for the same key isn't worth the confusion for a bonus feature.
+// Escape still closes it, though — same as the main demo's own overlay,
+// and deliberately unscoped so it keeps working while "game" itself is
+// suspended (see notifyOverlayOpened below).
 
 const gameOverlayEl = getElement<HTMLElement>("#game-shortcuts-overlay");
 
+const openGameOverlay = (): void => {
+  gameOverlayEl.hidden = false;
+  notifyOverlayOpened("game-shortcuts");
+};
+
+const closeGameOverlay = (): void => {
+  gameOverlayEl.hidden = true;
+  notifyOverlayClosed("game-shortcuts");
+};
+
+getElement<HTMLElement>("#game-bindings-button").addEventListener(
+  "click",
+  openGameOverlay,
+);
+
+getElement<HTMLElement>("#game-overlay-close").addEventListener(
+  "click",
+  closeGameOverlay,
+);
+
+gameOverlayEl.addEventListener("click", (ev) => {
+  if (ev.target === gameOverlayEl) closeGameOverlay();
+});
+
+bindKeyboard.add("escape", closeGameOverlay, true, "keydown", {
+  description: "Close the game bindings overlay",
+  allowInInputElements: true,
+});
+
+// After every binding above (including the escape one) so the popup it's
+// about to render lists all of them, not just whatever existed first.
 renderShortcutsInto(
   getElement<HTMLElement>("#game-shortcuts-list"),
   bindKeyboard,
 );
-
-getElement<HTMLElement>("#game-bindings-button").addEventListener(
-  "click",
-  () => {
-    gameOverlayEl.hidden = false;
-  },
-);
-
-getElement<HTMLElement>("#game-overlay-close").addEventListener("click", () => {
-  gameOverlayEl.hidden = true;
-});
-
-gameOverlayEl.addEventListener("click", (ev) => {
-  if (ev.target === gameOverlayEl) gameOverlayEl.hidden = true;
-});

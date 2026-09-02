@@ -2,17 +2,39 @@ import BindKeyboard from "../src";
 import { getElement } from "./dom";
 import { currentKeyMode } from "./keyboard-view";
 import { renderShortcutsInto } from "./shortcuts-list";
+import {
+  notifyOverlayClosed,
+  notifyOverlayOpened,
+  registerOverlayScopeHandle,
+} from "./overlay-scopes";
 
 // --- Demo bindings + BindKeyboard instance ----------------------------------
+// The demo's own non-overlay bindings (select all/undo/toggle theme, below)
+// live under the "keyboard" scope, active by default and suspended while
+// *either* this page's overlay is open (see ./overlay-scopes) — "?" (opens
+// this overlay) and "escape" (closes it) stay unscoped so they keep working
+// regardless.
+
+// Reassigned on every rebuild (see main.ts's rebuildBindKeyboard) — the
+// scope handle below is registered once, at module load, but always needs
+// to act on whichever instance currently exists.
+let currentBindKeyboard: BindKeyboard | undefined = undefined;
+
+registerOverlayScopeHandle({
+  disable: () => currentBindKeyboard?.disableScope("keyboard"),
+  enable: () => currentBindKeyboard?.enableScope("keyboard"),
+});
 
 const overlayEl = getElement<HTMLElement>("#shortcuts-overlay");
 
 const openOverlay = (): void => {
   overlayEl.hidden = false;
+  notifyOverlayOpened("main-shortcuts");
 };
 
 const closeOverlay = (): void => {
   overlayEl.hidden = true;
+  notifyOverlayClosed("main-shortcuts");
 };
 
 const flashShortcut = (keyCombination: string): void => {
@@ -51,7 +73,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     },
     true,
     "keydown",
-    { description: "Select all" },
+    { description: "Select all", scope: "keyboard" },
   );
 
   const [undo] = bindKeyboard.add(
@@ -61,7 +83,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     },
     true,
     "keydown",
-    { description: "Undo" },
+    { description: "Undo", scope: "keyboard" },
   );
 
   const [toggleTheme] = bindKeyboard.add(
@@ -73,7 +95,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     },
     true,
     "keydown",
-    { description: "Toggle theme" },
+    { description: "Toggle theme", scope: "keyboard" },
   );
 
   const [closeShortcut] = bindKeyboard.add(
@@ -128,6 +150,8 @@ export const createBindKeyboard = (): BindKeyboard => {
 
   registerDemoBindings(bindKeyboard);
   renderShortcuts(bindKeyboard);
+  bindKeyboard.enableScope("keyboard");
+  currentBindKeyboard = bindKeyboard;
 
   return bindKeyboard;
 };
