@@ -362,12 +362,14 @@ for (const button of getElement<HTMLElement>(
   );
 }
 
-renderKeyboard(getElement<HTMLElement>("#keyboard"), currentIsMac());
+const keyboardEl = getElement<HTMLElement>("#keyboard");
+
+renderKeyboard(keyboardEl, currentIsMac());
 
 wireSegmentedToggle("#keymode-toggle", rebuildBindKeyboard);
 
 wireSegmentedToggle("#layout-toggle", () => {
-  renderKeyboard(getElement<HTMLElement>("#keyboard"), currentIsMac());
+  renderKeyboard(keyboardEl, currentIsMac());
 });
 
 getElement<HTMLInputElement>("#check-input-elements-toggle").addEventListener(
