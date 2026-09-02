@@ -142,6 +142,20 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     { description: "Toggle theme" },
   );
 
+  // A key sequence (see the README's Sequences section) — Vim's own "go
+  // to top", pressing "g" twice in a row. Same "keyboard" scope as
+  // select all/undo: it acts on the page itself, not on the popup.
+  const [scrollToTop] = bindKeyboard.add(
+    "g,g",
+    () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      flashShortcut(scrollToTop.keyCombination);
+    },
+    true,
+    "keydown",
+    { description: "Scroll to top (sequence: g,g)", scope: "keyboard" },
+  );
+
   const [closeShortcut] = bindKeyboard.add(
     "escape",
     () => {
