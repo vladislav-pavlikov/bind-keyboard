@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bind-keyboard demo</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>bind-keyboard</h1>
+      <p class="subtitle">
+        Live demo — press any key combination to see it detected below.
+      </p>
+    </header>
+
+    <main class="layout">
+      <section class="keyboard-column">
+        <div id="keyboard" class="keyboard" aria-hidden="true"></div>
+        <div class="combo-readout">
+          <span class="combo-label">Detected combination</span>
+          <code id="combo-text">—</code>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="control">
+          <span class="control-label">keyMode</span>
+          <div class="segmented" id="keymode-toggle">
+            <button type="button" data-value="key" class="active">key</button>
+            <button type="button" data-value="code">code</button>
+          </div>
+        </div>
+
+        <div class="control">
+          <label class="checkbox-row">
+            <input type="checkbox" id="check-input-elements-toggle" />
+            checkInputElements
+          </label>
+        </div>
+
+        <div class="control">
+          <label for="test-input" class="control-label"
+            >Test input (for checkInputElements)</label
+          >
+          <input
+            id="test-input"
+            type="text"
+            placeholder="Type here, then try a shortcut..."
+          />
+        </div>
+
+        <div class="control">
+          <div class="control-label-row">
+            <span class="control-label">Registered shortcuts</span>
+            <span class="hint">press <kbd>?</kbd> for full view</span>
+          </div>
+          <ul id="shortcuts-list" class="shortcuts-list"></ul>
+        </div>
+      </aside>
+    </main>
+
+    <div id="shortcuts-overlay" class="overlay" hidden>
+      <div class="overlay-panel">
+        <div class="overlay-header">
+          <h2>Keyboard shortcuts</h2>
+          <button type="button" id="overlay-close" aria-label="Close">
+            &times;
+          </button>
+        </div>
+        <ul id="overlay-shortcuts-list" class="shortcuts-list"></ul>
+        <p class="overlay-hint">
+          Built live from <code>getAllBindings()</code>.
+        </p>
+      </div>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

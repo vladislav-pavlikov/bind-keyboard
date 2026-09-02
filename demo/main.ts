@@ -1,0 +1,325 @@
+import BindKeyboard from "../src";
+import type { KeyMode } from "../src/types";
+
+/**
+ * Looks up a required DOM element and throws with a clear message if it's
+ * missing, instead of a non-null assertion — this file assumes the fixed
+ * structure of index.html, so a failure here means that structure drifted.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- T is a caller-supplied type-assertion helper (like querySelector<T>'s own generic), not something inferred from the arguments — that's the whole point of this wrapper.
+const getElement = <T extends Element>(selector: string): T => {
+  const element = document.querySelector<T>(selector);
+  if (!element) {
+    throw new Error(`demo/main.ts: expected an element matching "${selector}"`);
+  }
+  return element;
+};
+
+// --- Keyboard layout -------------------------------------------------------
+// Purely visual: maps each on-screen key to the `code` it lights up for.
+// Highlighting always tracks the physical key (event.code), independent of
+// the keyMode toggle below (which only changes how *matching* works).
+
+interface KeyDef {
+  code: string;
+  label: string;
+  width?: "1.5" | "2" | "space";
+}
+
+const lettersToKeys = (letters: string): KeyDef[] =>
+  // eslint-disable-next-line @typescript-eslint/no-misused-spread -- plain ASCII A-Z literals only, no risk of Unicode code-point/code-unit mismatch.
+  [...letters].map((letter) => ({ code: `Key${letter}`, label: letter }));
+
+const KEYBOARD_ROWS: KeyDef[][] = [
+  [
+    { code: "Escape", label: "Esc" },
+    ...Array.from({ length: 12 }, (_, i) => ({
+      code: `F${i + 1}`,
+      label: `F${i + 1}`,
+    })),
+  ],
+  [
+    { code: "Backquote", label: "`" },
+    ...Array.from({ length: 9 }, (_, i) => ({
+      code: `Digit${i + 1}`,
+      label: `${i + 1}`,
+    })),
+    { code: "Digit0", label: "0" },
+    { code: "Minus", label: "-" },
+    { code: "Equal", label: "=" },
+    { code: "Backspace", label: "Backspace", width: "2" },
+  ],
+  [
+    { code: "Tab", label: "Tab", width: "1.5" },
+    ...lettersToKeys("QWERTYUIOP"),
+    { code: "BracketLeft", label: "[" },
+    { code: "BracketRight", label: "]" },
+    { code: "Backslash", label: "\\" },
+  ],
+  [
+    { code: "CapsLock", label: "Caps", width: "1.5" },
+    ...lettersToKeys("ASDFGHJKL"),
+    { code: "Semicolon", label: ";" },
+    { code: "Quote", label: "'" },
+    { code: "Enter", label: "Enter", width: "2" },
+  ],
+  [
+    { code: "ShiftLeft", label: "Shift", width: "2" },
+    ...lettersToKeys("ZXCVBNM"),
+    { code: "Comma", label: "," },
+    { code: "Period", label: "." },
+    { code: "Slash", label: "/" },
+    { code: "ShiftRight", label: "Shift", width: "2" },
+  ],
+  [
+    { code: "ControlLeft", label: "Ctrl", width: "1.5" },
+    { code: "MetaLeft", label: "Meta" },
+    { code: "AltLeft", label: "Alt" },
+    { code: "Space", label: "", width: "space" },
+    { code: "AltRight", label: "Alt" },
+    { code: "MetaRight", label: "Meta" },
+    { code: "ControlRight", label: "Ctrl", width: "1.5" },
+  ],
+];
+
+const keyElementsByCode = new Map<string, HTMLElement>();
+
+const renderKeyboard = (container: HTMLElement): void => {
+  for (const row of KEYBOARD_ROWS) {
+    const rowEl = document.createElement("div");
+    rowEl.className = "kb-row";
+
+    for (const { code, label, width } of row) {
+      const keyEl = document.createElement("div");
+      keyEl.className = "key";
+      keyEl.textContent = label;
+      if (width) keyEl.dataset.width = width;
+      rowEl.appendChild(keyEl);
+      keyElementsByCode.set(code, keyEl);
+    }
+
+    container.appendChild(rowEl);
+  }
+};
+
+// --- Live combo readout + highlighting -------------------------------------
+
+const comboTextEl = getElement<HTMLElement>("#combo-text");
+const pressedCodes = new Set<string>();
+
+const updateHighlighting = (): void => {
+  for (const [code, el] of keyElementsByCode) {
+    el.classList.toggle("pressed", pressedCodes.has(code));
+  }
+};
+
+const KEY_MODES: readonly KeyMode[] = ["key", "code"];
+
+const isKeyMode = (value: string | undefined): value is KeyMode =>
+  (KEY_MODES as readonly string[]).includes(value ?? "");
+
+const currentKeyMode = (): KeyMode => {
+  const {
+    dataset: { value },
+  } = getElement<HTMLButtonElement>("#keymode-toggle .active");
+  return isKeyMode(value) ? value : "key";
+};
+
+document.addEventListener("keydown", (ev) => {
+  pressedCodes.add(ev.code);
+  updateHighlighting();
+  comboTextEl.textContent = BindKeyboard.getKeyCombination(
+    ev,
+    currentKeyMode(),
+  );
+});
+
+document.addEventListener("keyup", (ev) => {
+  pressedCodes.delete(ev.code);
+  updateHighlighting();
+  if (pressedCodes.size === 0) comboTextEl.textContent = "—";
+});
+
+// Avoid keys getting stuck highlighted if focus leaves the page mid-press.
+window.addEventListener("blur", () => {
+  pressedCodes.clear();
+  updateHighlighting();
+});
+
+// --- Demo bindings + BindKeyboard instance ----------------------------------
+
+const overlayEl = getElement<HTMLElement>("#shortcuts-overlay");
+
+const openOverlay = (): void => {
+  overlayEl.hidden = false;
+};
+
+const closeOverlay = (): void => {
+  overlayEl.hidden = true;
+};
+
+const flashShortcut = (keyCombination: string): void => {
+  for (const listEl of document.querySelectorAll<HTMLElement>(
+    ".shortcuts-list",
+  )) {
+    const item = listEl.querySelector<HTMLElement>(
+      `[data-combination="${keyCombination}"]`,
+    );
+    if (!item) continue;
+    item.classList.add("flash");
+    setTimeout(() => {
+      item.classList.remove("flash");
+    }, 400);
+  }
+};
+
+const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
+  const [selectAll] = bindKeyboard.add(
+    "ctrl+a",
+    (ev) => {
+      ev.preventDefault();
+      flashShortcut(selectAll.keyCombination);
+    },
+    true,
+    "keypress",
+    { description: "Select all" },
+  );
+
+  const [undo] = bindKeyboard.add(
+    "ctrl+z",
+    () => {
+      flashShortcut(undo.keyCombination);
+    },
+    true,
+    "keypress",
+    { description: "Undo" },
+  );
+
+  const [toggleTheme] = bindKeyboard.add(
+    "ctrl+/",
+    (ev) => {
+      ev.preventDefault();
+      document.body.classList.toggle("light");
+      flashShortcut(toggleTheme.keyCombination);
+    },
+    true,
+    "keydown",
+    { description: "Toggle theme" },
+  );
+
+  const [closeShortcut] = bindKeyboard.add(
+    "escape",
+    () => {
+      closeOverlay();
+      flashShortcut(closeShortcut.keyCombination);
+    },
+    true,
+    "keydown",
+    {
+      description: "Close the shortcuts overlay",
+      allowInInputElements: true,
+    },
+  );
+
+  // Registered via the object construct (not a "shift+/" string) with both
+  // `key` and `code` set explicitly: "?" only exists as a *shifted* symbol,
+  // which keyParser's string-form code-guessing deliberately doesn't cover
+  // (see the caveat on guessCodeFromKey in src/helpers/keyParser.ts) — so a
+  // string-registered "shift+/" would stop matching real Shift+/ keydowns
+  // the moment keyMode switches to "code". Setting both properties here
+  // keeps it correct in either mode.
+  const [showAll] = bindKeyboard.add(
+    { key: "?", code: "Slash", shiftKey: true },
+    (ev) => {
+      ev.preventDefault();
+      openOverlay();
+      flashShortcut(showAll.keyCombination);
+    },
+    true,
+    "keydown",
+    { description: "Show all shortcuts" },
+  );
+};
+
+const renderShortcutsInto = (
+  listEl: HTMLElement,
+  bindKeyboard: BindKeyboard,
+): void => {
+  listEl.replaceChildren();
+
+  for (const {
+    keyCombination,
+    description: entryDescription,
+  } of bindKeyboard.getAllBindings()) {
+    const item = document.createElement("li");
+    item.dataset.combination = keyCombination;
+
+    const combo = document.createElement("kbd");
+    combo.textContent = keyCombination;
+
+    const description = document.createElement("span");
+    description.textContent = entryDescription ?? "";
+
+    item.append(combo, description);
+    listEl.appendChild(item);
+  }
+};
+
+const renderShortcuts = (bindKeyboard: BindKeyboard): void => {
+  renderShortcutsInto(getElement<HTMLElement>("#shortcuts-list"), bindKeyboard);
+  renderShortcutsInto(
+    getElement<HTMLElement>("#overlay-shortcuts-list"),
+    bindKeyboard,
+  );
+};
+
+const createBindKeyboard = (): BindKeyboard => {
+  const bindKeyboard = new BindKeyboard({
+    keyMode: currentKeyMode(),
+    checkInputElements: getElement<HTMLInputElement>(
+      "#check-input-elements-toggle",
+    ).checked,
+  });
+
+  registerDemoBindings(bindKeyboard);
+  renderShortcuts(bindKeyboard);
+
+  return bindKeyboard;
+};
+
+let bindKeyboard = createBindKeyboard();
+
+const rebuildBindKeyboard = (): void => {
+  bindKeyboard.destroy();
+  bindKeyboard = createBindKeyboard();
+};
+
+// --- Wiring ------------------------------------------------------------------
+
+renderKeyboard(getElement<HTMLElement>("#keyboard"));
+
+getElement<HTMLElement>("#keymode-toggle").addEventListener("click", (ev) => {
+  if (!(ev.target instanceof HTMLElement)) return;
+  const button = ev.target.closest("button");
+  if (!button?.parentElement) return;
+
+  for (const sibling of button.parentElement.children) {
+    sibling.classList.toggle("active", sibling === button);
+  }
+
+  rebuildBindKeyboard();
+});
+
+getElement<HTMLInputElement>("#check-input-elements-toggle").addEventListener(
+  "change",
+  rebuildBindKeyboard,
+);
+
+getElement<HTMLElement>("#overlay-close").addEventListener(
+  "click",
+  closeOverlay,
+);
+
+overlayEl.addEventListener("click", (ev) => {
+  if (ev.target === overlayEl) closeOverlay();
+});

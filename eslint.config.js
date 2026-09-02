@@ -5,11 +5,11 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/**", "coverage/**", "node_modules/**"],
+    ignores: ["dist/**", "coverage/**", "node_modules/**", "public/**"],
   },
   {
     ...love,
-    files: ["src/**/*.{js,ts,jsx,tsx}"],
+    files: ["src/**/*.{js,ts,jsx,tsx}", "demo/**/*.ts"],
     languageOptions: {
       ...love.languageOptions,
       globals: {

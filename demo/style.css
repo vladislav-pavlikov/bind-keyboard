@@ -1,0 +1,311 @@
+:root {
+  --bg: #121212;
+  --panel: #1a1a1a;
+  --key: #2c2c2c;
+  --key-border: #3a3a3a;
+  --key-pressed: #ff8a3d;
+  --text: #e6e6e6;
+  --text-dim: #9a9a9a;
+  --accent: #ff8a3d;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+body.light {
+  --bg: #f5f5f5;
+  --panel: #ffffff;
+  --key: #eaeaea;
+  --key-border: #d4d4d4;
+  --key-pressed: #ff8a3d;
+  --text: #1a1a1a;
+  --text-dim: #6b6b6b;
+  --accent: #d9600a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 24px;
+}
+
+.page-header {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+}
+
+.page-header h1 {
+  margin: 0 0 4px;
+  font-family: var(--mono);
+}
+
+.subtitle {
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.keyboard-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.keyboard {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.kb-row {
+  display: flex;
+  gap: 6px;
+}
+
+.key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  min-width: 44px;
+  padding: 0 8px;
+  background: var(--key);
+  color: var(--text-dim);
+  border-radius: 6px;
+  font: 12px/1 var(--mono);
+  border: 1px solid var(--key-border);
+  transition:
+    background 80ms ease,
+    color 80ms ease,
+    box-shadow 80ms ease;
+  user-select: none;
+}
+
+.key[data-width="1.5"] {
+  min-width: 68px;
+}
+
+.key[data-width="2"] {
+  min-width: 88px;
+}
+
+.key[data-width="space"] {
+  flex: 1;
+}
+
+.key.pressed {
+  background: var(--key-pressed);
+  color: #1a1a1a;
+  border-color: var(--key-pressed);
+  font-weight: bold;
+  box-shadow: 0 0 16px rgba(255, 138, 61, 0.6);
+}
+
+.combo-readout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.combo-label {
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+#combo-text {
+  font: 18px/1 var(--mono);
+  background: var(--panel);
+  color: var(--accent);
+  padding: 8px 14px;
+  border-radius: 6px;
+  min-width: 120px;
+  text-align: center;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--panel);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.control-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--key-border);
+  border-radius: 6px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.segmented button {
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  padding: 6px 14px;
+  font: 12px var(--mono);
+  cursor: pointer;
+}
+
+.segmented button.active {
+  background: var(--accent);
+  color: #1a1a1a;
+  font-weight: bold;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#test-input {
+  background: var(--key);
+  border: 1px solid var(--key-border);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.shortcuts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shortcuts-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: background 150ms ease;
+}
+
+.shortcuts-list li.flash {
+  background: rgba(255, 138, 61, 0.25);
+}
+
+.shortcuts-list kbd {
+  font: 12px var(--mono);
+  color: var(--accent);
+}
+
+.shortcuts-list span {
+  color: var(--text-dim);
+}
+
+kbd {
+  font-family: var(--mono);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay-panel {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 24px;
+  width: min(420px, 90vw);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.overlay-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+#overlay-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.overlay-hint {
+  margin: 16px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.overlay-hint code {
+  font-family: var(--mono);
+  color: var(--accent);
+}
