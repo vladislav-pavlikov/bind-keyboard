@@ -99,8 +99,6 @@ class BindKeyboard {
     }
   }
 
-  // TODO: add 'then' shortcuts, like 'g then o'
-  // TODO: add 'or' shortcuts, like 'shift + g or o'
   /**
    * Handles keyboard event listener. Prevents intercepting key events when typing in input fields
    * and manages execution of callback functions based on key combination and event type.
@@ -222,11 +220,23 @@ class BindKeyboard {
     }
 
     return parsedCombinations.map((parsedCombination) => {
-      if (this.#debug && bindingsForType.has(parsedCombination)) {
-        // eslint-disable-next-line no-console -- surfaces a real footgun (silently replacing a binding) only when the consumer opted into `debug`.
-        console.warn(
-          `[bind-keyboard] Overwriting existing binding for "${parsedCombination}" (${type}).`,
-        );
+      if (this.#debug) {
+        if (bindingsForType.has(parsedCombination)) {
+          // eslint-disable-next-line no-console -- surfaces a real footgun (silently replacing a binding) only when the consumer opted into `debug`.
+          console.warn(
+            `[bind-keyboard] Overwriting existing binding for "${parsedCombination}" (${type}).`,
+          );
+        }
+
+        const reservedShortcutHint =
+          helpers.getReservedShortcutHint(parsedCombination);
+
+        if (reservedShortcutHint) {
+          // eslint-disable-next-line no-console -- a heads-up only when the consumer opted into `debug`; never blocks registration.
+          console.warn(
+            `[bind-keyboard] "${parsedCombination}" is commonly used by browsers/OS for "${reservedShortcutHint}". Some browsers let a page override this with event.preventDefault() in the callback; others (e.g. new tab/window, close tab, quit) never dispatch the event to the page at all — verify this binding actually works in your target browsers.`,
+          );
+        }
       }
 
       const entry = new Classes.KeybindEntry({
@@ -319,3 +329,5 @@ class BindKeyboard {
 export default BindKeyboard;
 
 export { BindKeyboard, Classes, helpers };
+export { default as KeybindError } from "./classes/KeybindError";
+export type * as Types from "./types";

@@ -31,9 +31,7 @@ const getKeyCombination = (
   mode: KeyMode = "key",
 ): KeyCombination => {
   if (!ctrlKey && !shiftKey && !altKey && !metaKey && !key && !code) {
-    throw new KeybindError(
-      "Not one key is defined. Enter at least 1 parameter",
-    );
+    throw new KeybindError("At least one key or modifier must be provided.");
   }
   const normalizedKey =
     mode === "code" ? normalizeKeyFromCode(code) : undefined;
