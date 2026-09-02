@@ -387,6 +387,10 @@ kbd {
   border-color: var(--accent);
 }
 
+.code-sample .segmented {
+  margin-bottom: 12px;
+}
+
 .code-sample pre {
   margin: 0;
   overflow-x: auto;

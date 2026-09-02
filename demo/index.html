@@ -96,6 +96,22 @@
 
     <section class="code-sample">
       <div class="code-sample-header">
+        <h2>Install</h2>
+        <button type="button" id="copy-install" class="copy-button">
+          Copy
+        </button>
+      </div>
+      <div class="segmented" id="install-toggle">
+        <button type="button" data-value="npm" class="active">npm</button>
+        <button type="button" data-value="yarn">yarn</button>
+        <button type="button" data-value="pnpm">pnpm</button>
+        <button type="button" data-value="bun">bun</button>
+      </div>
+      <pre><code id="install-command-text"></code></pre>
+    </section>
+
+    <section class="code-sample">
+      <div class="code-sample-header">
         <h2>Try it in your code</h2>
         <button type="button" id="copy-code" class="copy-button">Copy</button>
       </div>

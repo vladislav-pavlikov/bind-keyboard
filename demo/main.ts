@@ -393,6 +393,80 @@ const renderShortcuts = (bindKeyboard: BindKeyboard): void => {
   );
 };
 
+// Shared by every "Copy" button on the page (the install command and the
+// code sample): copies sourceEl's text to the clipboard, falling back to
+// selecting it (for browsers/contexts without the Clipboard API) if that
+// fails, and flashes a brief confirmation on the triggering button.
+const copyTextFrom = async (
+  sourceEl: HTMLElement,
+  button: HTMLButtonElement,
+): Promise<void> => {
+  const { textContent: text } = sourceEl;
+  let feedback = "Copied!";
+
+  try {
+    // navigator.clipboard requires a secure context and isn't guaranteed to
+    // exist at runtime even though the DOM types say it always does — if
+    // it's missing, accessing .writeText below throws synchronously and
+    // falls through to the manual-selection fallback in the catch block.
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Fallback for browsers/contexts without the Clipboard API: select the
+    // text so the viewer can copy it manually.
+    const range = document.createRange();
+    range.selectNodeContents(sourceEl);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    feedback = "Selected — press ⌘/Ctrl+C";
+  }
+
+  // Mutating the passed-in button's textContent is the entire point of this
+  // helper (flashing feedback on whichever button triggered it), not an
+  // accidental side effect on caller-owned state.
+  const { textContent: originalLabel } = button;
+  // eslint-disable-next-line no-param-reassign -- see comment above.
+  button.textContent = feedback;
+  setTimeout(() => {
+    // eslint-disable-next-line no-param-reassign -- see comment above.
+    button.textContent = originalLabel;
+  }, 1500);
+};
+
+// --- Install command ---------------------------------------------------------
+
+const PACKAGE_MANAGERS = ["npm", "yarn", "pnpm", "bun"] as const;
+type PackageManager = (typeof PACKAGE_MANAGERS)[number];
+
+const isPackageManager = (value: string | undefined): value is PackageManager =>
+  (PACKAGE_MANAGERS as readonly string[]).includes(value ?? "");
+
+const INSTALL_COMMANDS: Record<PackageManager, string> = {
+  npm: "npm install bind-keyboard",
+  yarn: "yarn add bind-keyboard",
+  pnpm: "pnpm add bind-keyboard",
+  bun: "bun add bind-keyboard",
+};
+
+const currentPackageManager = (): PackageManager => {
+  const {
+    dataset: { value },
+  } = getElement<HTMLButtonElement>("#install-toggle .active");
+  return isPackageManager(value) ? value : "npm";
+};
+
+const installCommandEl = getElement<HTMLElement>("#install-command-text");
+const copyInstallButton = getElement<HTMLButtonElement>("#copy-install");
+
+const renderInstallCommand = (): void => {
+  const { [currentPackageManager()]: command } = INSTALL_COMMANDS;
+  installCommandEl.textContent = command;
+};
+
+copyInstallButton.addEventListener("click", () => {
+  void copyTextFrom(installCommandEl, copyInstallButton);
+});
+
 // --- Live code sample --------------------------------------------------------
 // Mirrors the currently selected keyMode/checkInputElements settings into a
 // copy-pasteable snippet, so the sample the viewer copies always matches what
@@ -425,36 +499,8 @@ const renderCodeSample = (): void => {
   ].join("\n");
 };
 
-const copyCodeSample = async (): Promise<void> => {
-  const { textContent: text } = codeSampleEl;
-  let feedback = "Copied!";
-
-  try {
-    // navigator.clipboard requires a secure context and isn't guaranteed to
-    // exist at runtime even though the DOM types say it always does — if
-    // it's missing, accessing .writeText below throws synchronously and
-    // falls through to the manual-selection fallback in the catch block.
-    await navigator.clipboard.writeText(text);
-  } catch {
-    // Fallback for browsers/contexts without the Clipboard API: select the
-    // text so the viewer can copy it manually.
-    const range = document.createRange();
-    range.selectNodeContents(codeSampleEl);
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-    feedback = "Selected — press ⌘/Ctrl+C";
-  }
-
-  const { textContent: originalLabel } = copyCodeButton;
-  copyCodeButton.textContent = feedback;
-  setTimeout(() => {
-    copyCodeButton.textContent = originalLabel;
-  }, 1500);
-};
-
 copyCodeButton.addEventListener("click", () => {
-  void copyCodeSample();
+  void copyTextFrom(codeSampleEl, copyCodeButton);
 });
 
 const createBindKeyboard = (): BindKeyboard => {
@@ -519,12 +565,15 @@ const keyboardEl = getElement<HTMLElement>("#keyboard");
 
 renderKeyboard(keyboardEl, currentIsMac());
 renderCodeSample();
+renderInstallCommand();
 
 wireSegmentedToggle("#keymode-toggle", updateSettingsDependents);
 
 wireSegmentedToggle("#layout-toggle", () => {
   renderKeyboard(keyboardEl, currentIsMac());
 });
+
+wireSegmentedToggle("#install-toggle", renderInstallCommand);
 
 getElement<HTMLInputElement>("#check-input-elements-toggle").addEventListener(
   "change",
