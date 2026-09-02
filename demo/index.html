@@ -263,12 +263,28 @@
         <h2>Try it in your code</h2>
         <button type="button" id="copy-code" class="copy-button">Copy</button>
       </div>
+      <div class="code-sample-controls">
+        <div class="segmented" id="framework-toggle">
+          <button type="button" data-value="vanilla" class="active">
+            Vanilla
+          </button>
+          <button type="button" data-value="react">React</button>
+          <button type="button" data-value="vue">Vue</button>
+          <button type="button" data-value="svelte">Svelte</button>
+        </div>
+        <div class="segmented" id="language-toggle">
+          <button type="button" data-value="ts" class="active">TS</button>
+          <button type="button" data-value="js">JS</button>
+        </div>
+      </div>
       <div class="code-window">
         <div class="code-window-titlebar">
           <span class="dot dot-red"></span>
           <span class="dot dot-yellow"></span>
           <span class="dot dot-green"></span>
-          <span class="code-window-filename">example.ts</span>
+          <span class="code-window-filename" id="code-sample-filename"
+            >example.ts</span
+          >
         </div>
         <pre
           class="code-window-body code-window-body--numbered"

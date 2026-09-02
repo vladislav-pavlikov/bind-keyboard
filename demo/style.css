@@ -656,6 +656,18 @@ kbd {
   margin-bottom: 12px;
 }
 
+.code-sample-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.code-sample-controls .segmented {
+  margin-bottom: 0;
+}
+
 /* Editor/terminal chrome — deliberately a fixed dark palette regardless of
    the page's own light/dark theme, the way embedded code blocks almost
    always look on real docs sites (VS Code Dark+ inspired). */
