@@ -179,6 +179,18 @@ body {
   color: var(--text-dim);
 }
 
+.control-desc {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.control-desc code {
+  font: 11px var(--mono);
+  color: var(--text);
+}
+
 .segmented {
   display: inline-flex;
   border: 1px solid var(--key-border);

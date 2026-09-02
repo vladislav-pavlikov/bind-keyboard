@@ -30,6 +30,12 @@
             <button type="button" data-value="key" class="active">key</button>
             <button type="button" data-value="code">code</button>
           </div>
+          <p class="control-desc">
+            <code>key</code> matches <code>event.key</code> (layout-aware —
+            e.g. Ctrl+A needs an actual "A" from the active layout);
+            <code>code</code> matches <code>event.code</code>, the physical
+            key position, regardless of layout.
+          </p>
         </div>
 
         <div class="control">
@@ -50,6 +56,12 @@
             <input type="checkbox" id="check-input-elements-toggle" />
             checkInputElements
           </label>
+          <p class="control-desc">
+            When checked, shortcuts are suppressed while the input below (or
+            any text field/textarea/select/contenteditable) is focused —
+            except bindings marked <code>allowInInputElements</code>, like
+            Escape.
+          </p>
         </div>
 
         <div class="control">
