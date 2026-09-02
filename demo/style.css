@@ -340,6 +340,10 @@ body {
   color: var(--accent);
 }
 
+.shortcut-combos kbd {
+  margin: 0 2px;
+}
+
 .shortcuts-list span {
   color: var(--text-dim);
 }
