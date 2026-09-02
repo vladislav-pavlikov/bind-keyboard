@@ -19,6 +19,7 @@
 - `"cmdOrCtrl"` — a platform-neutral modifier alias in string combinations, resolving to `metaKey` on Mac and `ctrlKey` everywhere else.
 - Debugging options for different levels of output, including a heads-up when a binding commonly collides with a browser/OS shortcut (e.g. `ctrl+p` for Print).
 - Safe to construct during server-side rendering — it skips autostart instead of throwing when there's no DOM yet.
+- Scopes — tag a binding so it only fires while its scope is active, with the same key combination free to mean something else (or nothing) globally.
 
 Not currently supported: key chords/sequences (e.g. a Vim-style "press `g` then `o`") or "or" alternates (e.g. "`shift+g` or `o`") — every binding is a single, simultaneous key combination.
 
@@ -84,24 +85,25 @@ bindKeyboard.add("ctrl+z", undo, true, "keydown", {
   description: "Undo", // shows up in getAllBindings(), useful for a shortcuts help screen
   allowInInputElements: false, // default; set true to fire even while typing
   override: true, // default; pass false to throw instead of silently replacing an existing binding
+  scope: undefined, // default; tag this binding so it only fires while that scope is active — see Scopes below
 });
 ```
 
-Throws `KeybindError` for an invalid `type`, or when `override: false` and a binding already exists for that combination (see [Errors and types](#errors-and-types) below).
+Throws `KeybindError` for an invalid `type`, or when `override: false` and a binding already exists for that combination _and scope_ (see [Errors and types](#errors-and-types) below) — a binding can coexist with another one registered for the same combination under a different scope without conflicting.
 
 `type: "keyup"` ignores `ctrlKey`/`shiftKey`/`altKey`/`metaKey` (and `cmdOrCtrl`) entirely — `add("d", cb, true, "keyup")` fires on releasing "d" no matter what other modifiers happen to still be held at that instant. This is what makes continuous-hold tracking (`.add("d", () => (held = true), true, "keydown"); .add("d", () => (held = false), true, "keyup")`) reliable even while also using a modifier-based binding on the same key (e.g. a `"shift+d"` dash while still holding `"d"` to move) — a release is a release, regardless of what else is held. `"keydown"`/`"keypress"` are unaffected by this — modifiers still fully matter there.
 
-### `.remove(keyCombination, type = "keypress")`
+### `.remove(keyCombination, type = "keypress", scope = undefined)`
 
-Removes a single binding. Returns `true` if a binding was found and removed.
+Removes a single binding. Returns `true` if a binding was found and removed. Pass `scope` to remove a specific scoped binding instead of the unscoped (global) one.
 
-### `.getKeybind(keyCombination, type = "keypress")`
+### `.getKeybind(keyCombination, type = "keypress", scope = undefined)`
 
-Looks up a single binding, returning its `KeybindEntry` or `undefined`.
+Looks up a single binding, returning its `KeybindEntry` or `undefined`. Pass `scope` to look up a specific scoped binding instead of the unscoped (global) one.
 
 ### `.getAllBindings()`
 
-Returns every registered `KeybindEntry` across all event types — handy for building a "keyboard shortcuts" help screen from each entry's `description`.
+Returns every registered `KeybindEntry` across all event types and scopes — handy for building a "keyboard shortcuts" help screen from each entry's `description`.
 
 ```ts
 for (const entry of bindKeyboard.getAllBindings()) {
@@ -124,6 +126,42 @@ Stops listening and clears every binding in one call — use it in a component's
 ### `.getTarget()`
 
 Returns the `EventTarget` this instance listens on.
+
+## Scopes
+
+Tag a binding with `scope` (see `.add()` above) and it only fires while that scope is active — bindings with no scope at all are unaffected and always fire. The same key combination can have a separate binding per scope, plus one more with no scope; whichever scope is currently active takes priority over the unscoped one for that combination.
+
+```ts
+bindKeyboard.add("escape", closeApp); // unscoped — always fires
+bindKeyboard.add("escape", closeModal, true, "keydown", { scope: "modal" });
+
+openModal.addEventListener("open", () => {
+  bindKeyboard.enableScope("modal"); // Escape now closes the modal, not the app
+});
+
+openModal.addEventListener("close", () => {
+  bindKeyboard.disableScope("modal"); // Escape goes back to closing the app
+});
+```
+
+### `.enableScope(scope)` / `.disableScope(scope)`
+
+Activate/deactivate one or more scopes (`scope` is a `string` or `string[]`), on top of whatever else is already active.
+
+### `.setActiveScopes(scopes)`
+
+Replaces the entire active-scope set at once — useful for temporarily restricting to just one scope (e.g. opening a modal) and later restoring exactly what was active before (closing it), without manually diffing:
+
+```ts
+const previous = bindKeyboard.getActiveScopes();
+bindKeyboard.setActiveScopes(["modal"]);
+// ...later:
+bindKeyboard.setActiveScopes(previous);
+```
+
+### `.getActiveScopes()`
+
+Returns the scopes currently active, as a `string[]` (no particular order).
 
 ## Errors and types
 

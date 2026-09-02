@@ -31,10 +31,17 @@ const logDebugEvent = ({
 class BindKeyboard {
   readonly #target: EventTarget;
   readonly #debug: Types.DebugLevel;
+  // Keyed by combination, then by scope (`undefined` for an unscoped/global
+  // binding) — lets the same combination carry a separate binding per
+  // scope, plus one more with no scope at all, all coexisting. See
+  // #resolveEntry for how one gets picked when more than one is present.
   readonly #bindings: Record<
     Types.EventType,
-    Map<Types.KeyCombination, Classes.KeybindEntry>
+    Map<Types.KeyCombination, Map<string | undefined, Classes.KeybindEntry>>
   >;
+
+  // Scopes currently active — see enableScope/disableScope/setActiveScopes.
+  #activeScopes = new Set<string>();
 
   // Tracks, per event type, the combination whose callback last actually
   // ran — see #listener for why this (not just event.repeat) is what
@@ -91,11 +98,13 @@ class BindKeyboard {
         allowInInputElements,
         override,
         description,
+        scope,
       } of props.initialBindings) {
         this.add(keyCombination, callback, preventRepeat, type, {
           allowInInputElements,
           override,
           description,
+          scope,
         });
       }
     }
@@ -197,6 +206,30 @@ class BindKeyboard {
     );
   }
 
+  /**
+   * Picks which entry (if any) registered for this exact combination
+   * should actually fire right now: the first entry (in registration
+   * order) whose `scope` is currently active, or — if none of the scoped
+   * ones are — the unscoped (global) entry, if one was registered. A
+   * scope being active always wins over the unscoped entry for the same
+   * combination, regardless of which was registered first.
+   *
+   * @param {Map<string | undefined, Classes.KeybindEntry> | undefined} entriesForCombination - Every entry registered for this combination, keyed by scope (`undefined` for unscoped/global).
+   * @returns {Classes.KeybindEntry | undefined} The matching entry, if any.
+   */
+  #resolveEntry(
+    entriesForCombination:
+      Map<string | undefined, Classes.KeybindEntry> | undefined,
+  ): Classes.KeybindEntry | undefined {
+    if (!entriesForCombination) return undefined;
+
+    for (const [scope, entry] of entriesForCombination) {
+      if (scope !== undefined && this.#activeScopes.has(scope)) return entry;
+    }
+
+    return entriesForCombination.get(undefined);
+  }
+
   readonly #listener = (ev: Event): void => {
     if (!(ev instanceof KeyboardEvent)) return;
 
@@ -211,7 +244,9 @@ class BindKeyboard {
       eventType,
       isModifierEvent,
     );
-    const entry = this.#bindings[eventType].get(keyCombination);
+    const entry = this.#resolveEntry(
+      this.#bindings[eventType].get(keyCombination),
+    );
 
     // Do not intercept key events when typing in input fields, unless this
     // specific binding opted in via { allowInInputElements: true }.
@@ -255,30 +290,33 @@ class BindKeyboard {
   static getKeyCombination = helpers.getKeyCombination;
 
   /**
-   * Gets the binding for a specific key combination and event type.
+   * Gets the binding for a specific key combination, event type, and scope.
    *
    * @param {Types.KeyCombination | Types.KeyCombinationConstruct} keyCombination - The key combination to look up.
    * @param {Types.EventType} [type='keypress'] - The type of keyboard event to search (optional, default is 'keypress').
+   * @param {string} [scope=undefined] - Look up the binding registered for this specific scope, rather than the unscoped (global) one. Doesn't consider which scopes are currently active — see `.add()`'s `scope` option.
    * @returns {Classes.KeybindEntry | undefined} The key binding entry or undefined if not found.
    */
   getKeybind = (
     keyCombination: Types.KeyCombination | Types.KeyCombinationConstruct,
     type: Types.EventType = "keypress",
+    scope?: string,
   ): Classes.KeybindEntry | undefined =>
-    this.#bindings[type].get(
-      helpers.keyParser(keyCombination, this.#keyMode, type === "keyup"),
-    );
+    this.#bindings[type]
+      .get(helpers.keyParser(keyCombination, this.#keyMode, type === "keyup"))
+      ?.get(scope);
 
   /**
-   * Gets an array of all key bindings across all event types.
+   * Gets an array of all key bindings across all event types and scopes.
    *
    * @returns {Classes.KeybindEntry[]} An array of all key bindings.
    */
-  getAllBindings = (): Classes.KeybindEntry[] => [
-    ...this.#bindings.keydown.values(),
-    ...this.#bindings.keypress.values(),
-    ...this.#bindings.keyup.values(),
-  ];
+  getAllBindings = (): Classes.KeybindEntry[] =>
+    (["keydown", "keypress", "keyup"] as const).flatMap((type) =>
+      [...this.#bindings[type].values()].flatMap((entriesForCombination) => [
+        ...entriesForCombination.values(),
+      ]),
+    );
 
   /**
    * Adds one or more keyboard event bindings for the given key combination(s).
@@ -287,9 +325,9 @@ class BindKeyboard {
    * @param {Types.KeybindCallback} callback - The callback function to execute when the key combination is pressed.
    * @param {boolean} [preventRepeat=true] - Whether to prevent repeated key press events when holding down the key (optional, default is true).
    * @param {Types.EventType} [type='keypress'] - The type of keyboard event to bind (optional, default is 'keypress').
-   * @param {Types.AddBindingOptions} [options={}] - Extra, optional behavior for this binding (allowInInputElements, override, description).
+   * @param {Types.AddBindingOptions} [options={}] - Extra, optional behavior for this binding (allowInInputElements, override, description, scope).
    * @returns {Classes.KeybindEntry[]} The binding entries that were created, one per key combination.
-   * @throws {Classes.KeybindError} When an invalid EventType is provided, or when a binding already exists and `options.override` is `false`.
+   * @throws {Classes.KeybindError} When an invalid EventType is provided, or when a binding already exists for the same combination *and* scope and `options.override` is `false`.
    */
   add = (
     keyCombination:
@@ -312,16 +350,16 @@ class BindKeyboard {
     const parsedCombinations = combinations.map((combination) =>
       helpers.keyParser(combination, this.#keyMode, type === "keyup"),
     );
+    const { scope } = options;
+    const scopeLabel = scope ? `, scope "${scope}"` : "";
 
     if (options.override === false) {
       const seen = new Set<Types.KeyCombination>();
       const conflict = parsedCombinations.find((parsedCombination) => {
-        if (
-          bindingsForType.has(parsedCombination) ||
-          seen.has(parsedCombination)
-        ) {
-          return true;
-        }
+        const alreadyExists =
+          bindingsForType.get(parsedCombination)?.has(scope) ?? false;
+
+        if (alreadyExists || seen.has(parsedCombination)) return true;
 
         seen.add(parsedCombination);
         return false;
@@ -329,17 +367,21 @@ class BindKeyboard {
 
       if (conflict) {
         throw new Classes.KeybindError(
-          `A binding for "${conflict}" (${type}) already exists. Pass { override: true } (the default) to replace it.`,
+          `A binding for "${conflict}" (${type}${scopeLabel}) already exists. Pass { override: true } (the default) to replace it.`,
         );
       }
     }
 
     return parsedCombinations.map((parsedCombination) => {
+      const entriesForCombination =
+        bindingsForType.get(parsedCombination) ??
+        new Map<string | undefined, Classes.KeybindEntry>();
+
       if (this.#debug) {
-        if (bindingsForType.has(parsedCombination)) {
+        if (entriesForCombination.has(scope)) {
           // eslint-disable-next-line no-console -- surfaces a real footgun (silently replacing a binding) only when the consumer opted into `debug`.
           console.warn(
-            `[bind-keyboard] Overwriting existing binding for "${parsedCombination}" (${type}).`,
+            `[bind-keyboard] Overwriting existing binding for "${parsedCombination}" (${type}${scopeLabel}).`,
           );
         }
 
@@ -361,30 +403,49 @@ class BindKeyboard {
         preventRepeat,
         allowInInputElements: options.allowInInputElements,
         description: options.description,
+        scope,
       });
 
-      bindingsForType.set(parsedCombination, entry);
+      entriesForCombination.set(scope, entry);
+      bindingsForType.set(parsedCombination, entriesForCombination);
       return entry;
     });
   };
 
   /**
-   * Removes a keyboard event binding for a specific key combination.
+   * Removes a keyboard event binding for a specific key combination, event
+   * type, and scope.
    *
    * @param {Types.KeyCombination | Types.KeyCombinationConstruct} keyCombination - The key combination to unbind.
    * @param {Types.EventType} [type='keypress'] - The type of keyboard event to unbind (optional, default is 'keypress').
+   * @param {string} [scope=undefined] - Remove the binding registered for this specific scope, rather than the unscoped (global) one.
+   * @returns {boolean} Whether a binding was found and removed.
    * @throws {Classes.KeybindError} When an invalid EventType is provided.
    */
   remove = (
     keyCombination: Types.KeyCombination | Types.KeyCombinationConstruct,
     type: Types.EventType = "keypress",
+    scope?: string,
   ): boolean => {
     if (!["keypress", "keydown", "keyup"].includes(type)) {
       throw new Classes.KeybindError("Wrong EventType.");
     }
-    return this.#bindings[type].delete(
-      helpers.keyParser(keyCombination, this.#keyMode, type === "keyup"),
+
+    const { [type]: bindingsForType } = this.#bindings;
+    const parsedCombination = helpers.keyParser(
+      keyCombination,
+      this.#keyMode,
+      type === "keyup",
     );
+    const entriesForCombination = bindingsForType.get(parsedCombination);
+    const removed = entriesForCombination?.delete(scope) ?? false;
+
+    // Don't leave an empty Map behind once its last scope is removed.
+    if (removed && entriesForCombination?.size === 0) {
+      bindingsForType.delete(parsedCombination);
+    }
+
+    return removed;
   };
 
   /**
@@ -395,6 +456,47 @@ class BindKeyboard {
       map.clear();
     });
   };
+
+  /**
+   * Activates one or more scopes. A scoped binding (see `.add()`'s `scope`
+   * option) only fires while its scope is active — bindings with no scope
+   * at all are unaffected and always fire.
+   *
+   * @param {string | string[]} scope - The scope(s) to activate, in addition to whatever was already active.
+   */
+  enableScope = (scope: string | string[]): void => {
+    for (const s of Array.isArray(scope) ? scope : [scope]) {
+      this.#activeScopes.add(s);
+    }
+  };
+
+  /**
+   * Deactivates one or more scopes — the inverse of `enableScope()`.
+   *
+   * @param {string | string[]} scope - The scope(s) to deactivate.
+   */
+  disableScope = (scope: string | string[]): void => {
+    for (const s of Array.isArray(scope) ? scope : [scope]) {
+      this.#activeScopes.delete(s);
+    }
+  };
+
+  /**
+   * Replaces the entire set of active scopes at once — e.g. to temporarily
+   * restrict to just one scope (opening a modal) and later restore
+   * whatever was active before (closing it), without manually diffing via
+   * `enableScope`/`disableScope`.
+   *
+   * @param {string[]} scopes - The scopes that should be active, replacing whatever was active before.
+   */
+  setActiveScopes = (scopes: string[]): void => {
+    this.#activeScopes = new Set(scopes);
+  };
+
+  /**
+   * @returns {string[]} The scopes currently active, in no particular order.
+   */
+  getActiveScopes = (): string[] => [...this.#activeScopes];
 
   /**
    * Starts listening for keyboard events on the target element.

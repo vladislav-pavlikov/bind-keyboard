@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- New scopes API: tag a binding with `{ scope: "modal" }` in `.add()`'s options, then `enableScope()`/`disableScope()`/`setActiveScopes()` to control which scopes are active. A scoped binding only fires while its scope is active; unscoped bindings are unaffected and always fire. The same key combination can carry a separate binding per scope plus one more with no scope — whichever registered scope is currently active takes priority over the unscoped one. `getKeybind()`/`.remove()` both accept an optional `scope` argument to target a specific scoped binding; `getAllBindings()` now includes every scope.
+
 - **`checkInputElements` now defaults to `true`** (was `false`) — bindings are skipped while an input/textarea/select/contenteditable is focused unless you opt out with `checkInputElements: false`, or opt a specific binding back in with `allowInInputElements: true`. The README and demo already described "input-safe by default" as a feature; the actual default didn't match that until now. Pass `checkInputElements: false` to restore the old (pre-1.0.0) behavior.
 - Export the `Types` namespace (`import type { Types } from "bind-keyboard"`) so consumers can name `AddBindingOptions`, `KeybindCallback`, `ConstructorProps`, `KeybindInitializer`, `EventType`, `DebugLevel`, `KeyMode`, `KeyCombination`, `KeyCombinationConstruct` directly.
 - Export `KeybindError` at the top level (`import { KeybindError } from "bind-keyboard"`), in addition to the existing `Classes.KeybindError`.

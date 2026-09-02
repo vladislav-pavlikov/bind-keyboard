@@ -49,6 +49,14 @@ export default [
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
+      // A single comprehensive test file mirrors the single-file library it
+      // tests — splitting it purely to dodge a line count would scatter a
+      // cohesive suite across files for no readability gain. Raised, not
+      // disabled, so genuinely unbounded growth still gets flagged.
+      "max-lines": [
+        "error",
+        { max: 700, skipBlankLines: true, skipComments: true },
+      ],
     },
   },
   prettierConfig,

@@ -37,6 +37,17 @@ export interface AddBindingOptions {
    * shortcuts" help screen from `getAllBindings()`). Not used internally.
    */
   description?: string;
+  /**
+   * Tags this binding with a named scope. A scoped binding only fires
+   * while its scope is active (see `enableScope`/`setActiveScopes` on
+   * `BindKeyboard`) — bindings with no scope at all always fire,
+   * regardless of which scopes are active. The same key combination can
+   * have a separate binding per scope, plus one more with no scope; when
+   * more than one would otherwise match, whichever registered scope is
+   * currently active takes priority over an unscoped binding for that
+   * same combination.
+   */
+  scope?: string;
 }
 
 export interface KeybindInitializer extends AddBindingOptions {

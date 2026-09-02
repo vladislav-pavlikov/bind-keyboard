@@ -475,6 +475,112 @@ describe("Keybind Library Tests", () => {
     guarded.destroy();
   });
 
+  it("should not trigger a scoped binding while its scope is inactive, and should once enabled", () => {
+    const scoped = new BindKeyboard();
+    const callback = jest.fn();
+    scoped.add("ctrl+k", callback, true, "keypress", { scope: "modal" });
+
+    dispatchEvent(new KeyboardEvent("keypress", { key: "k", ctrlKey: true }));
+    expect(callback).not.toHaveBeenCalled();
+
+    scoped.enableScope("modal");
+    dispatchEvent(new KeyboardEvent("keypress", { key: "k", ctrlKey: true }));
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    scoped.disableScope("modal");
+    dispatchEvent(new KeyboardEvent("keypress", { key: "k", ctrlKey: true }));
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    scoped.destroy();
+  });
+
+  it("should prefer a scoped binding over an unscoped one for the same combination while that scope is active", () => {
+    const scoped = new BindKeyboard();
+    const globalCallback = jest.fn();
+    const modalCallback = jest.fn();
+    scoped.add("escape", globalCallback, true, "keydown");
+    scoped.add("escape", modalCallback, true, "keydown", { scope: "modal" });
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(globalCallback).toHaveBeenCalledTimes(1);
+    expect(modalCallback).not.toHaveBeenCalled();
+
+    scoped.enableScope("modal");
+    dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(globalCallback).toHaveBeenCalledTimes(1);
+    expect(modalCallback).toHaveBeenCalledTimes(1);
+
+    scoped.disableScope("modal");
+    dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(globalCallback).toHaveBeenCalledTimes(2);
+    expect(modalCallback).toHaveBeenCalledTimes(1);
+
+    scoped.destroy();
+  });
+
+  it("should replace the whole active-scope set via setActiveScopes, and expose it via getActiveScopes", () => {
+    const scoped = new BindKeyboard();
+    scoped.enableScope(["a", "b"]);
+    expect(scoped.getActiveScopes().sort()).toEqual(["a", "b"]);
+
+    scoped.setActiveScopes(["c"]);
+    expect(scoped.getActiveScopes()).toEqual(["c"]);
+
+    scoped.destroy();
+  });
+
+  it("should look up and remove a specific scope's binding via getKeybind/remove without touching the unscoped one", () => {
+    const scoped = new BindKeyboard();
+    scoped.add("ctrl+k", jest.fn(), true, "keypress");
+    scoped.add("ctrl+k", jest.fn(), true, "keypress", { scope: "modal" });
+
+    expect(scoped.getKeybind("ctrl+k")).toBeDefined();
+    expect(scoped.getKeybind("ctrl+k", "keypress", "modal")).toBeDefined();
+    expect(
+      scoped.getKeybind("ctrl+k", "keypress", "other-scope"),
+    ).not.toBeDefined();
+
+    expect(scoped.remove("ctrl+k", "keypress", "modal")).toBe(true);
+    expect(scoped.getKeybind("ctrl+k", "keypress", "modal")).not.toBeDefined();
+    expect(scoped.getKeybind("ctrl+k")).toBeDefined();
+
+    scoped.destroy();
+  });
+
+  it("should not conflict across different scopes with override: false, but should within the same scope", () => {
+    const scoped = new BindKeyboard();
+    scoped.add("ctrl+k", jest.fn(), true, "keypress", { scope: "a" });
+
+    expect(() =>
+      scoped.add("ctrl+k", jest.fn(), true, "keypress", {
+        scope: "b",
+        override: false,
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      scoped.add("ctrl+k", jest.fn(), true, "keypress", {
+        scope: "a",
+        override: false,
+      }),
+    ).toThrow(KeybindError);
+
+    scoped.destroy();
+  });
+
+  it("should include scoped bindings in getAllBindings()", () => {
+    const scoped = new BindKeyboard();
+    scoped.add("ctrl+k", jest.fn(), true, "keypress");
+    scoped.add("ctrl+k", jest.fn(), true, "keypress", { scope: "modal" });
+
+    const scopes = scoped.getAllBindings().map((entry) => entry.scope);
+    expect(scopes).toHaveLength(2);
+    expect(scopes).toContain("modal");
+    expect(scopes).toContain(undefined);
+
+    scoped.destroy();
+  });
+
   it("should skip autostart instead of throwing when the target cannot listen", () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- intentionally silences console.warn noise for this test.
     const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});

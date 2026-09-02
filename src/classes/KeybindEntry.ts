@@ -7,6 +7,7 @@ interface KeybindEntryProps {
   preventRepeat: boolean;
   allowInInputElements?: boolean;
   description?: string;
+  scope?: string;
 }
 
 class KeybindEntry {
@@ -16,6 +17,7 @@ class KeybindEntry {
   public readonly preventRepeat: boolean;
   public readonly allowInInputElements: boolean;
   public readonly description?: string;
+  public readonly scope?: string;
 
   constructor({
     keyCombination,
@@ -24,6 +26,7 @@ class KeybindEntry {
     preventRepeat,
     allowInInputElements,
     description,
+    scope,
   }: KeybindEntryProps) {
     this.keyCombination = keyCombination;
     this.callback = callback;
@@ -31,6 +34,7 @@ class KeybindEntry {
     this.preventRepeat = preventRepeat;
     this.allowInInputElements = allowInInputElements ?? false;
     this.description = description;
+    this.scope = scope;
   }
 }
 
