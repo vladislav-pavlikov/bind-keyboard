@@ -2,6 +2,7 @@
 
 ## 1.0.0
 
+- **`checkInputElements` now defaults to `true`** (was `false`) — bindings are skipped while an input/textarea/select/contenteditable is focused unless you opt out with `checkInputElements: false`, or opt a specific binding back in with `allowInInputElements: true`. The README and demo already described "input-safe by default" as a feature; the actual default didn't match that until now. Pass `checkInputElements: false` to restore the old (pre-1.0.0) behavior.
 - Export the `Types` namespace (`import type { Types } from "bind-keyboard"`) so consumers can name `AddBindingOptions`, `KeybindCallback`, `ConstructorProps`, `KeybindInitializer`, `EventType`, `DebugLevel`, `KeyMode`, `KeyCombination`, `KeyCombinationConstruct` directly.
 - Export `KeybindError` at the top level (`import { KeybindError } from "bind-keyboard"`), in addition to the existing `Classes.KeybindError`.
 - `add()` now warns (under `debug`) when a registered combination commonly collides with a browser/OS shortcut (e.g. `ctrl+p` for Print) — informational only, never blocks registration.

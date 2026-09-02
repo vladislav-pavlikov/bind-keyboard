@@ -425,6 +425,38 @@ describe("Keybind Library Tests", () => {
     guarded.destroy();
   });
 
+  it("should not intercept keys while an input is focused by default (checkInputElements defaults to true)", () => {
+    const guarded = new BindKeyboard();
+    const callback = jest.fn();
+    guarded.add("ctrl+a", callback);
+
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+    input.focus();
+
+    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    expect(callback).not.toHaveBeenCalled();
+
+    input.remove();
+    guarded.destroy();
+  });
+
+  it("should trigger bindings while an input is focused when checkInputElements is explicitly false", () => {
+    const unguarded = new BindKeyboard({ checkInputElements: false });
+    const callback = jest.fn();
+    unguarded.add("ctrl+a", callback);
+
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+    input.focus();
+
+    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    expect(callback).toHaveBeenCalled();
+
+    input.remove();
+    unguarded.destroy();
+  });
+
   it("should still trigger a binding marked allowInInputElements while an input is focused", () => {
     const guarded = new BindKeyboard({ checkInputElements: true });
     const callback = jest.fn();

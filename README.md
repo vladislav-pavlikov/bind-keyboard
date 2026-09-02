@@ -52,21 +52,21 @@ bindKeyboard.add("ctrl+a", (event) => {
 new BindKeyboard({
   target: window, // EventTarget to listen on (default: globalThis)
   debug: 0, // 0 = off, 1 = log matched bindings, 2 = log every key event
-  checkInputElements: false, // skip bindings while an input/textarea/select/contenteditable is focused
+  checkInputElements: true, // skip bindings while an input/textarea/select/contenteditable is focused
   autostart: true, // start listening immediately
   keyMode: "key", // "key" (event.key) or "code" (event.code, layout-agnostic)
   initialBindings: [], // KeybindInitializer[], added at construction time
 });
 ```
 
-| Option               | Type                   | Default      | Description                                                                          |
-| -------------------- | ---------------------- | ------------ | ------------------------------------------------------------------------------------ |
-| `target`             | `EventTarget`          | `globalThis` | Where keyboard events are listened for.                                              |
-| `debug`              | `0 \| 1 \| 2`          | `0`          | `1` logs matched bindings, `2` logs every observed key event.                        |
-| `checkInputElements` | `boolean`              | `false`      | When `true`, bindings are skipped while a text-entry element is focused (see below). |
-| `autostart`          | `boolean`              | `true`       | Start listening as soon as the instance is constructed.                              |
-| `keyMode`            | `"key" \| "code"`      | `"key"`      | `"code"` matches by physical key (`event.code`), independent of keyboard layout.     |
-| `initialBindings`    | `KeybindInitializer[]` | `undefined`  | Bindings to register immediately, equivalent to calling `.add()` for each.           |
+| Option               | Type                   | Default      | Description                                                                                                                           |
+| -------------------- | ---------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `target`             | `EventTarget`          | `globalThis` | Where keyboard events are listened for.                                                                                               |
+| `debug`              | `0 \| 1 \| 2`          | `0`          | `1` logs matched bindings, `2` logs every observed key event.                                                                         |
+| `checkInputElements` | `boolean`              | `true`       | When `true`, bindings are skipped while a text-entry element is focused (see below). Pass `false` to fire bindings even while typing. |
+| `autostart`          | `boolean`              | `true`       | Start listening as soon as the instance is constructed.                                                                               |
+| `keyMode`            | `"key" \| "code"`      | `"key"`      | `"code"` matches by physical key (`event.code`), independent of keyboard layout.                                                      |
+| `initialBindings`    | `KeybindInitializer[]` | `undefined`  | Bindings to register immediately, equivalent to calling `.add()` for each.                                                            |
 
 ## API
 

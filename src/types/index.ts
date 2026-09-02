@@ -50,6 +50,12 @@ export interface ConstructorProps {
   target?: EventTarget | HTMLElement;
   debug?: DebugLevel;
   initialBindings?: KeybindInitializer[];
+  /**
+   * Whether bindings are skipped while an input, textarea, select, or
+   * contenteditable element is focused. Defaults to `true` — pass `false`
+   * to fire bindings even while typing. See `allowInInputElements` for a
+   * per-binding override in the other direction.
+   */
   checkInputElements?: boolean;
   autostart?: boolean;
   keyMode?: KeyMode;

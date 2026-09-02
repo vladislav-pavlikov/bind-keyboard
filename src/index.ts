@@ -58,7 +58,7 @@ class BindKeyboard {
    * @param {Types.ConstructorProps} [props={}] - Configuration options for the Keybind instance.
    * @param {EventTarget} [props.target=globalThis] - The target element for listening to keyboard events (optional, default is window).
    * @param {Types.DebugLevel} [props.debug=0] - The level of debugging output (0 - None, 1 - Only existing bindings, 2 - All key events) (optional, default is 0).
-   * @param {boolean} [props.checkInputElements=false] - Whether to prevent intercepting key events when typing in input fields (optional, default is false).
+   * @param {boolean} [props.checkInputElements=true] - Whether to prevent intercepting key events when typing in input fields (optional, default is true). Pass `false` to fire bindings even while an input/textarea/select/contenteditable is focused.
    * @param {boolean} [props.autostart=true] - Whether to start listening for keyboard events immediately (optional, default is true).
    * @param {Types.KeyMode} [props.keyMode='key'] - Key matching mode: 'key' uses event.key, 'code' uses event.code (layout-agnostic).
    * @param {Types.KeybindInitializer[]} [props.initialBindings=undefined] - Initial key bindings to set upon instantiation (optional, default is undefined).
@@ -76,7 +76,10 @@ class BindKeyboard {
       keypress: undefined,
       keyup: undefined,
     };
-    this.#checkInputElements = props.checkInputElements || false;
+    this.#checkInputElements =
+      typeof props.checkInputElements === "boolean"
+        ? props.checkInputElements
+        : true;
     this.#keyMode = props.keyMode || "key";
 
     if (props.initialBindings) {
