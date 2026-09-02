@@ -5,4 +5,5 @@ export { default as isInputOrTextArea } from "./isInputOrTextArea";
 export { default as isMacPlatform } from "./isMacPlatform";
 export { default as isModifierCode } from "./isModifierCode";
 export { default as keyParser } from "./keyParser";
+export { default as parseSequence } from "./parseSequence";
 // @endindex

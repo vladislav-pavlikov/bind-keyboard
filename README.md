@@ -20,8 +20,9 @@
 - Debugging options for different levels of output, including a heads-up when a binding commonly collides with a browser/OS shortcut (e.g. `ctrl+p` for Print).
 - Safe to construct during server-side rendering — it skips autostart instead of throwing when there's no DOM yet.
 - Scopes — tag a binding so it only fires while its scope is active, with the same key combination free to mean something else (or nothing) globally.
+- Key sequences (e.g. a Vim-style "press `g` then `o`") — `"g,o"` fires once every step is pressed in order, within a configurable timeout of each other.
 
-Not currently supported: key chords/sequences (e.g. a Vim-style "press `g` then `o`") or "or" alternates (e.g. "`shift+g` or `o`") — every binding is a single, simultaneous key combination.
+Not currently supported: "or" alternates in a single binding (e.g. "`shift+g` or `o`") — register the callback for both combinations instead (`.add(["shift+g", "o"], callback)`).
 
 ## Installation
 
@@ -57,6 +58,7 @@ new BindKeyboard({
   autostart: true, // start listening immediately
   keyMode: "key", // "key" (event.key) or "code" (event.code, layout-agnostic)
   initialBindings: [], // KeybindInitializer[], added at construction time
+  sequenceTimeout: 1000, // max ms between presses of a key sequence — see Sequences below
 });
 ```
 
@@ -68,12 +70,13 @@ new BindKeyboard({
 | `autostart`          | `boolean`              | `true`       | Start listening as soon as the instance is constructed.                                                                               |
 | `keyMode`            | `"key" \| "code"`      | `"key"`      | `"code"` matches by physical key (`event.code`), independent of keyboard layout.                                                      |
 | `initialBindings`    | `KeybindInitializer[]` | `undefined`  | Bindings to register immediately, equivalent to calling `.add()` for each.                                                            |
+| `sequenceTimeout`    | `number`               | `1000`       | Max ms between presses of a key sequence before it's abandoned (see below). No effect on plain, non-sequence bindings.                |
 
 ## API
 
 ### `.add(keyCombination, callback, preventRepeat = true, type = "keypress", options = {})`
 
-Registers a binding. `keyCombination` is a string (`"ctrl+a"`), a construct object (`{ key: "a", ctrlKey: true }`), or an array of either to bind the same callback to several combinations at once. Returns the created `KeybindEntry[]` (one per combination).
+Registers a binding. `keyCombination` is a string (`"ctrl+a"`), a construct object (`{ key: "a", ctrlKey: true }`), a comma-separated sequence string (`"g,o"` — see [Sequences](#sequences) below), or an array mixing any of those to bind the same callback to several combinations at once. Returns the created `KeybindEntry[]` (one per combination).
 
 ```ts
 // "cmdOrCtrl" resolves to metaKey on Mac, ctrlKey elsewhere — use it instead
@@ -162,6 +165,20 @@ bindKeyboard.setActiveScopes(previous);
 ### `.getActiveScopes()`
 
 Returns the scopes currently active, as a `string[]` (no particular order).
+
+## Sequences
+
+A string containing a comma is a sequence — its callback only fires once every step is pressed in order, each within `sequenceTimeout` ms of the last (default 1000ms; see [Constructor options](#constructor-options)):
+
+```ts
+bindKeyboard.add("g,o", goToFile, true, "keydown");
+```
+
+A comma immediately after a `+` is a literal comma key, not a separator, so a real Ctrl+Comma binding and a sequence never conflict: `"ctrl+,"` is one binding (Ctrl+Comma), while `"ctrl+,,g"` is a two-step sequence (Ctrl+Comma, then G).
+
+Everything else about a sequence's binding works the same as a plain one — `scope`, `allowInInputElements`, `description`, and `override: false`'s conflict check (against other sequences registered for the same combination and scope) all apply exactly as documented above. `preventRepeat` has no effect on a sequence.
+
+A bare modifier press between two steps (e.g. tapping Shift) doesn't reset progress — only a genuine mismatched key does, sending that sequence back to its first step. If completing one sequence would be ambiguous with another still-pending one that shares its prefix (e.g. `"g,o"` and `"g,o,x"` both registered, and `"g"` then `"o"` just pressed), neither fires — under `debug`, a console warning names both instead of guessing which was meant.
 
 ## Errors and types
 

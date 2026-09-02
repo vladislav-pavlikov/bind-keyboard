@@ -25,6 +25,36 @@ const logDebugEvent = ({
   );
 };
 
+// Sequence steps are stored joined by this literal NUL character rather
+// than the ", " a consumer types them with — a step's own canonical form
+// can itself legitimately contain a comma (e.g. "ctrl + ," for a real,
+// physical Ctrl+Comma binding — see helpers/parseSequence's own
+// lookbehind for why that doesn't get mistaken for a sequence to begin
+// with), which would make a comma-joined *storage* key ambiguous to
+// split back apart. A NUL character can never appear in any real key's
+// name, so it's safe as an internal-only delimiter; sequenceDisplayKey
+// below turns it back into the readable, comma-separated form for
+// anything a human might actually read.
+const SEQUENCE_KEY_SEPARATOR = String.fromCharCode(0);
+
+const sequenceDisplayKey = (sequenceKey: string): string =>
+  sequenceKey.split(SEQUENCE_KEY_SEPARATOR).join(", ");
+
+// Shared by every place that needs to know where a raw combination
+// belongs (add/remove/getKeybind) — a comma-containing string (barring
+// the parseSequence lookbehind above) is a sequence (#sequences);
+// anything else, including a KeyCombinationConstruct, is a plain
+// simultaneous combination (#bindings), exactly as it always was before
+// sequences existed. `key` is what actually gets used as the Map key
+// (SEQUENCE_KEY_SEPARATOR-joined for a sequence); `displayKey` is what a
+// human should see instead (KeybindEntry.keyCombination, error messages).
+interface ResolvedTarget {
+  store: Map<string, Map<string | undefined, Classes.KeybindEntry>>;
+  key: string;
+  displayKey: string;
+  isSequence: boolean;
+}
+
 /**
  * Manages keyboard event bindings and execution of callback functions for specific key combinations.
  */
@@ -39,6 +69,21 @@ class BindKeyboard {
     Types.EventType,
     Map<Types.KeyCombination, Map<string | undefined, Classes.KeybindEntry>>
   >;
+
+  // Sequences (e.g. "g,o") — same shape and scope-coexistence rules as
+  // #bindings, but keyed by the full, comma-joined sequence string rather
+  // than a single simultaneous combination. See #matchSequences.
+  readonly #sequences: Record<
+    Types.EventType,
+    Map<string, Map<string | undefined, Classes.KeybindEntry>>
+  >;
+
+  // How far into its own steps each registered sequence has progressed —
+  // keyed by the sequence's full string, value is the index of the next
+  // expected step (0 = not yet started). See #matchSequences.
+  readonly #sequenceProgress = new Map<string, number>();
+  #sequenceTimer: ReturnType<typeof setTimeout> | undefined = undefined;
+  readonly #sequenceTimeout: number;
 
   // Scopes currently active — see enableScope/disableScope/setActiveScopes.
   #activeScopes = new Set<string>();
@@ -69,6 +114,7 @@ class BindKeyboard {
    * @param {boolean} [props.autostart=true] - Whether to start listening for keyboard events immediately (optional, default is true).
    * @param {Types.KeyMode} [props.keyMode='key'] - Key matching mode: 'key' uses event.key, 'code' uses event.code (layout-agnostic).
    * @param {Types.KeybindInitializer[]} [props.initialBindings=undefined] - Initial key bindings to set upon instantiation (optional, default is undefined).
+   * @param {number} [props.sequenceTimeout=1000] - How long (in ms) a key sequence may wait between presses before it's abandoned (optional, default is 1000).
    */
   constructor(props: Types.ConstructorProps = {}) {
     this.#target = props.target || globalThis;
@@ -78,6 +124,12 @@ class BindKeyboard {
       keypress: new Map(),
       keyup: new Map(),
     };
+    this.#sequences = {
+      keydown: new Map(),
+      keypress: new Map(),
+      keyup: new Map(),
+    };
+    this.#sequenceTimeout = props.sequenceTimeout ?? 1000;
     this.#lastFiredCombination = {
       keydown: undefined,
       keypress: undefined,
@@ -230,6 +282,160 @@ class BindKeyboard {
     return entriesForCombination.get(undefined);
   }
 
+  /**
+   * Logs (under `debug`) that two or more registered sequences would
+   * otherwise fire ambiguously on this same press — e.g. "g,o" completing
+   * on the same event that "g,o,x" is still one press away from
+   * completing too. Neither fires; refusing to guess which one the
+   * consumer actually meant is safer than picking one.
+   *
+   * @param {string[]} completed - The sequence(s) that just reached their last step.
+   * @param {string[]} stillPending - The sequence(s) that also matched this press but need at least one more.
+   */
+  #warnSequenceConflict(completed: string[], stillPending: string[]): void {
+    if (!this.#debug) return;
+
+    const completedList = completed
+      .map((s) => `"${sequenceDisplayKey(s)}"`)
+      .join(", ");
+    const pendingList = stillPending
+      .map((s) => `"${sequenceDisplayKey(s)}"`)
+      .join(", ");
+    const pendingNote =
+      stillPending.length > 0
+        ? ` while [${pendingList}] ${stillPending.length > 1 ? "are" : "is"} still waiting for more presses`
+        : "";
+
+    // eslint-disable-next-line no-console -- a heads-up only when the consumer opted into `debug`; deliberately fires none of them rather than guessing which was meant.
+    console.warn(
+      `[bind-keyboard] Sequence conflict: ${completedList} would fire${pendingNote} — refusing to fire any of them.`,
+    );
+  }
+
+  /**
+   * Advances (or resets) a single registered sequence's progress against
+   * this event. A bare modifier press (e.g. tapping Shift between two
+   * steps) neither advances nor resets progress — anything else that
+   * doesn't match the expected next step does, requiring that sequence
+   * to start over from its first step.
+   *
+   * @param {string} sequenceKey - The sequence's full, SEQUENCE_KEY_SEPARATOR-joined string (also its key in #sequences/#sequenceProgress).
+   * @param {Types.KeyCombination} keyCombination - This event's already-resolved combination.
+   * @param {boolean} isModifierEvent - Whether `ev.code` is a modifier key.
+   * @returns {"completed" | "pending" | "unchanged"} Whether this event completed the sequence, advanced it partway, or left its progress as-is.
+   */
+  #advanceSequence(
+    sequenceKey: string,
+    keyCombination: Types.KeyCombination,
+    isModifierEvent: boolean,
+  ): "completed" | "pending" | "unchanged" {
+    const steps = sequenceKey.split(SEQUENCE_KEY_SEPARATOR);
+    const stepIndex = this.#sequenceProgress.get(sequenceKey) ?? 0;
+
+    if (keyCombination !== steps[stepIndex]) {
+      if (!isModifierEvent) this.#sequenceProgress.delete(sequenceKey);
+      return "unchanged";
+    }
+
+    if (stepIndex < steps.length - 1) {
+      this.#sequenceProgress.set(sequenceKey, stepIndex + 1);
+      return "pending";
+    }
+
+    this.#sequenceProgress.delete(sequenceKey);
+    return "completed";
+  }
+
+  /**
+   * Advances (or resets) every registered sequence's progress against
+   * this event, and fires whichever one (if any) just completed
+   * unambiguously. A single shared inactivity timer covers every
+   * sequence at once (not one per sequence, mirroring how
+   * #lastFiredCombination is one value per event type, not per binding)
+   * — any sequence-relevant event pushes it back by #sequenceTimeout, and
+   * it clears every sequence's progress once it fires.
+   *
+   * @param {KeyboardEvent} ev - The keyboard event.
+   * @param {Types.EventType} eventType - `ev.type`, narrowed.
+   * @param {boolean} isModifierEvent - Whether `ev.code` is a modifier key.
+   * @param {Types.KeyCombination} keyCombination - This event's already-resolved combination.
+   */
+  #matchSequences(
+    ev: KeyboardEvent,
+    eventType: Types.EventType,
+    isModifierEvent: boolean,
+    keyCombination: Types.KeyCombination,
+  ): void {
+    const { [eventType]: sequencesForType } = this.#sequences;
+    if (sequencesForType.size === 0) return;
+
+    clearTimeout(this.#sequenceTimer);
+    this.#sequenceTimer = setTimeout(() => {
+      this.#sequenceProgress.clear();
+    }, this.#sequenceTimeout);
+
+    const stillPending: string[] = [];
+    const completed: string[] = [];
+
+    for (const sequenceKey of sequencesForType.keys()) {
+      const result = this.#advanceSequence(
+        sequenceKey,
+        keyCombination,
+        isModifierEvent,
+      );
+
+      if (result === "pending") stillPending.push(sequenceKey);
+      else if (result === "completed") completed.push(sequenceKey);
+    }
+
+    if (completed.length === 0) return;
+
+    if (completed.length > 1 || stillPending.length > 0) {
+      this.#warnSequenceConflict(completed, stillPending);
+      return;
+    }
+
+    const [sequenceKey] = completed;
+    this.#fireSequence(ev, sequenceKey, sequencesForType);
+  }
+
+  /**
+   * Fires whichever entry (if any) is registered — across scopes — for
+   * the sequence that just completed unambiguously, honoring
+   * checkInputElements/allowInInputElements and the debug log the same
+   * way a plain combination's own firing does.
+   *
+   * @param {KeyboardEvent} ev - The keyboard event.
+   * @param {string} sequenceKey - The completed sequence's full, comma-joined string.
+   * @param {Map<string, Map<string | undefined, Classes.KeybindEntry>>} sequencesForType - This event type's registered sequences, to look `sequenceKey` up in.
+   */
+  #fireSequence(
+    ev: KeyboardEvent,
+    sequenceKey: string,
+    sequencesForType: Map<
+      string,
+      Map<string | undefined, Classes.KeybindEntry>
+    >,
+  ): void {
+    const entry = this.#resolveEntry(sequencesForType.get(sequenceKey));
+    const shouldSkipForInputElement =
+      this.#checkInputElements &&
+      !entry?.allowInInputElements &&
+      helpers.isInputOrTextArea();
+
+    if (shouldSkipForInputElement) return;
+
+    if (this.#debug === 2 || (this.#debug === 1 && entry)) {
+      logDebugEvent({
+        ev,
+        keyCombination: sequenceDisplayKey(sequenceKey),
+        callback: entry?.callback,
+      });
+    }
+
+    entry?.callback(ev);
+  }
+
   readonly #listener = (ev: Event): void => {
     if (!(ev instanceof KeyboardEvent)) return;
 
@@ -244,6 +450,9 @@ class BindKeyboard {
       eventType,
       isModifierEvent,
     );
+
+    this.#matchSequences(ev, eventType, isModifierEvent, keyCombination);
+
     const entry = this.#resolveEntry(
       this.#bindings[eventType].get(keyCombination),
     );
@@ -290,9 +499,46 @@ class BindKeyboard {
   static getKeyCombination = helpers.getKeyCombination;
 
   /**
+   * Resolves a raw combination to where it lives (or would live):
+   * #sequences for a string containing a comma (see helpers.parseSequence),
+   * #bindings for everything else — a KeyCombinationConstruct can't
+   * express a sequence, so it's never treated as one.
+   *
+   * @param {Types.KeyCombination | Types.KeyCombinationConstruct} combination - The raw combination, as given to add/remove/getKeybind.
+   * @param {Types.EventType} type - Which event type's store to resolve into.
+   * @returns {ResolvedTarget} Where this combination is (or would be) stored.
+   */
+  #resolveTarget(
+    combination: Types.KeyCombination | Types.KeyCombinationConstruct,
+    type: Types.EventType,
+  ): ResolvedTarget {
+    const sequenceSteps =
+      typeof combination === "string"
+        ? helpers.parseSequence(combination, this.#keyMode, type === "keyup")
+        : undefined;
+
+    if (sequenceSteps) {
+      return {
+        store: this.#sequences[type],
+        key: sequenceSteps.join(SEQUENCE_KEY_SEPARATOR),
+        displayKey: sequenceSteps.join(", "),
+        isSequence: true,
+      };
+    }
+
+    const key = helpers.keyParser(combination, this.#keyMode, type === "keyup");
+    return {
+      store: this.#bindings[type],
+      key,
+      displayKey: key,
+      isSequence: false,
+    };
+  }
+
+  /**
    * Gets the binding for a specific key combination, event type, and scope.
    *
-   * @param {Types.KeyCombination | Types.KeyCombinationConstruct} keyCombination - The key combination to look up.
+   * @param {Types.KeyCombination | Types.KeyCombinationConstruct} keyCombination - The key combination (or comma-separated sequence, e.g. "g,o") to look up.
    * @param {Types.EventType} [type='keypress'] - The type of keyboard event to search (optional, default is 'keypress').
    * @param {string} [scope=undefined] - Look up the binding registered for this specific scope, rather than the unscoped (global) one. Doesn't consider which scopes are currently active — see `.add()`'s `scope` option.
    * @returns {Classes.KeybindEntry | undefined} The key binding entry or undefined if not found.
@@ -301,29 +547,33 @@ class BindKeyboard {
     keyCombination: Types.KeyCombination | Types.KeyCombinationConstruct,
     type: Types.EventType = "keypress",
     scope?: string,
-  ): Classes.KeybindEntry | undefined =>
-    this.#bindings[type]
-      .get(helpers.keyParser(keyCombination, this.#keyMode, type === "keyup"))
-      ?.get(scope);
+  ): Classes.KeybindEntry | undefined => {
+    const { store, key } = this.#resolveTarget(keyCombination, type);
+    return store.get(key)?.get(scope);
+  };
 
   /**
-   * Gets an array of all key bindings across all event types and scopes.
+   * Gets an array of all key bindings (including sequences) across all
+   * event types and scopes.
    *
    * @returns {Classes.KeybindEntry[]} An array of all key bindings.
    */
   getAllBindings = (): Classes.KeybindEntry[] =>
-    (["keydown", "keypress", "keyup"] as const).flatMap((type) =>
-      [...this.#bindings[type].values()].flatMap((entriesForCombination) => [
+    (["keydown", "keypress", "keyup"] as const).flatMap((type) => [
+      ...[...this.#bindings[type].values()].flatMap((entriesForCombination) => [
         ...entriesForCombination.values(),
       ]),
-    );
+      ...[...this.#sequences[type].values()].flatMap(
+        (entriesForCombination) => [...entriesForCombination.values()],
+      ),
+    ]);
 
   /**
    * Adds one or more keyboard event bindings for the given key combination(s).
    *
-   * @param {Types.KeyCombination | Types.KeyCombinationConstruct | Array<Types.KeyCombination | Types.KeyCombinationConstruct>} keyCombination - The key combination(s) to bind.
+   * @param {Types.KeyCombination | Types.KeyCombinationConstruct | Array<Types.KeyCombination | Types.KeyCombinationConstruct>} keyCombination - The key combination(s) to bind. A string containing a comma (e.g. "g,o") is a sequence — its callback only fires once every step is pressed in order, within `sequenceTimeout` of each other.
    * @param {Types.KeybindCallback} callback - The callback function to execute when the key combination is pressed.
-   * @param {boolean} [preventRepeat=true] - Whether to prevent repeated key press events when holding down the key (optional, default is true).
+   * @param {boolean} [preventRepeat=true] - Whether to prevent repeated key press events when holding down the key (optional, default is true). Not meaningful for a sequence.
    * @param {Types.EventType} [type='keypress'] - The type of keyboard event to bind (optional, default is 'keypress').
    * @param {Types.AddBindingOptions} [options={}] - Extra, optional behavior for this binding (allowInInputElements, override, description, scope).
    * @returns {Classes.KeybindEntry[]} The binding entries that were created, one per key combination.
@@ -346,58 +596,62 @@ class BindKeyboard {
     const combinations = Array.isArray(keyCombination)
       ? keyCombination
       : [keyCombination];
-    const { [type]: bindingsForType } = this.#bindings;
-    const parsedCombinations = combinations.map((combination) =>
-      helpers.keyParser(combination, this.#keyMode, type === "keyup"),
+    const targets = combinations.map((combination) =>
+      this.#resolveTarget(combination, type),
     );
     const { scope } = options;
     const scopeLabel = scope ? `, scope "${scope}"` : "";
 
     if (options.override === false) {
-      const seen = new Set<Types.KeyCombination>();
-      const conflict = parsedCombinations.find((parsedCombination) => {
-        const alreadyExists =
-          bindingsForType.get(parsedCombination)?.has(scope) ?? false;
+      const seenBindings = new Set<string>();
+      const seenSequences = new Set<string>();
+      const conflict = targets.find((target) => {
+        const seen = target.isSequence ? seenSequences : seenBindings;
+        const alreadyExists = target.store.get(target.key)?.has(scope) ?? false;
 
-        if (alreadyExists || seen.has(parsedCombination)) return true;
+        if (alreadyExists || seen.has(target.key)) return true;
 
-        seen.add(parsedCombination);
+        seen.add(target.key);
         return false;
       });
 
       if (conflict) {
         throw new Classes.KeybindError(
-          `A binding for "${conflict}" (${type}${scopeLabel}) already exists. Pass { override: true } (the default) to replace it.`,
+          `A binding for "${conflict.displayKey}" (${type}${scopeLabel}) already exists. Pass { override: true } (the default) to replace it.`,
         );
       }
     }
 
-    return parsedCombinations.map((parsedCombination) => {
+    return targets.map((target) => {
       const entriesForCombination =
-        bindingsForType.get(parsedCombination) ??
+        target.store.get(target.key) ??
         new Map<string | undefined, Classes.KeybindEntry>();
 
       if (this.#debug) {
         if (entriesForCombination.has(scope)) {
           // eslint-disable-next-line no-console -- surfaces a real footgun (silently replacing a binding) only when the consumer opted into `debug`.
           console.warn(
-            `[bind-keyboard] Overwriting existing binding for "${parsedCombination}" (${type}${scopeLabel}).`,
+            `[bind-keyboard] Overwriting existing binding for "${target.displayKey}" (${type}${scopeLabel}).`,
           );
         }
 
-        const reservedShortcutHint =
-          helpers.getReservedShortcutHint(parsedCombination);
+        // A reserved-shortcut hint only makes sense for a single, real key
+        // combination a browser/OS might itself recognize — not a
+        // multi-step sequence, which isn't one.
+        const reservedShortcutHint = target.isSequence
+          ? undefined
+          : helpers.getReservedShortcutHint(target.key);
 
         if (reservedShortcutHint) {
           // eslint-disable-next-line no-console -- a heads-up only when the consumer opted into `debug`; never blocks registration.
           console.warn(
-            `[bind-keyboard] "${parsedCombination}" is commonly used by browsers/OS for "${reservedShortcutHint}". Some browsers let a page override this with event.preventDefault() in the callback; others (e.g. new tab/window, close tab, quit) never dispatch the event to the page at all — verify this binding actually works in your target browsers.`,
+            `[bind-keyboard] "${target.displayKey}" is commonly used by browsers/OS for "${reservedShortcutHint}". Some browsers let a page override this with event.preventDefault() in the callback; others (e.g. new tab/window, close tab, quit) never dispatch the event to the page at all — verify this binding actually works in your target browsers.`,
           );
         }
       }
 
       const entry = new Classes.KeybindEntry({
-        keyCombination: parsedCombination,
+        keyCombination: target.displayKey,
         callback,
         eventType: type,
         preventRepeat,
@@ -407,7 +661,7 @@ class BindKeyboard {
       });
 
       entriesForCombination.set(scope, entry);
-      bindingsForType.set(parsedCombination, entriesForCombination);
+      target.store.set(target.key, entriesForCombination);
       return entry;
     });
   };
@@ -416,7 +670,7 @@ class BindKeyboard {
    * Removes a keyboard event binding for a specific key combination, event
    * type, and scope.
    *
-   * @param {Types.KeyCombination | Types.KeyCombinationConstruct} keyCombination - The key combination to unbind.
+   * @param {Types.KeyCombination | Types.KeyCombinationConstruct} keyCombination - The key combination (or comma-separated sequence, e.g. "g,o") to unbind.
    * @param {Types.EventType} [type='keypress'] - The type of keyboard event to unbind (optional, default is 'keypress').
    * @param {string} [scope=undefined] - Remove the binding registered for this specific scope, rather than the unscoped (global) one.
    * @returns {boolean} Whether a binding was found and removed.
@@ -431,30 +685,31 @@ class BindKeyboard {
       throw new Classes.KeybindError("Wrong EventType.");
     }
 
-    const { [type]: bindingsForType } = this.#bindings;
-    const parsedCombination = helpers.keyParser(
-      keyCombination,
-      this.#keyMode,
-      type === "keyup",
-    );
-    const entriesForCombination = bindingsForType.get(parsedCombination);
+    const { store, key } = this.#resolveTarget(keyCombination, type);
+    const entriesForCombination = store.get(key);
     const removed = entriesForCombination?.delete(scope) ?? false;
 
     // Don't leave an empty Map behind once its last scope is removed.
     if (removed && entriesForCombination?.size === 0) {
-      bindingsForType.delete(parsedCombination);
+      store.delete(key);
     }
 
     return removed;
   };
 
   /**
-   * Removes all keyboard event bindings.
+   * Removes all keyboard event bindings, including sequences and their
+   * in-progress state.
    */
   removeAll = (): void => {
     Object.values(this.#bindings).forEach((map) => {
       map.clear();
     });
+    Object.values(this.#sequences).forEach((map) => {
+      map.clear();
+    });
+    this.#sequenceProgress.clear();
+    clearTimeout(this.#sequenceTimer);
   };
 
   /**

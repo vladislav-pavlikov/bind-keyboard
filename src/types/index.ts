@@ -70,4 +70,11 @@ export interface ConstructorProps {
   checkInputElements?: boolean;
   autostart?: boolean;
   keyMode?: KeyMode;
+  /**
+   * How long (in ms) a key sequence (e.g. `"g,o"`, see `.add()`) may wait
+   * between presses before it's abandoned and has to start over from its
+   * first step. Defaults to `1000`. Has no effect on plain, non-sequence
+   * bindings.
+   */
+  sequenceTimeout?: number;
 }
