@@ -34,7 +34,6 @@
   ],
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.13.0",
-    "@types/lodash": "^4.17.25",
     "@types/node": "^20.19.43",
     "bun-types": "^1.4.0",
     "eslint": "^9.39.5",
@@ -47,7 +46,6 @@
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
-    "lodash": "^4.18.1",
     "pinst": "^3.0.0",
     "prettier": "^3.9.6",
     "typescript": "^5.9.3",
@@ -82,11 +80,11 @@
   "bundlesize": [
     {
       "path": "./dist/bind-keyboard.js",
-      "maxSize": "6 kB"
+      "maxSize": "4 kB"
     },
     {
       "path": "./dist/bind-keyboard.umd.cjs",
-      "maxSize": "5 kB"
+      "maxSize": "4 kB"
     }
   ]
 }

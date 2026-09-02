@@ -1,7 +1,6 @@
 import type * as Types from "./types";
 import * as Classes from "./classes";
 import * as helpers from "./helpers";
-import isBoolean from "lodash/isBoolean";
 
 /**
  * Logs a single handled (or observed) key event to the console. Module-level
@@ -103,7 +102,8 @@ class BindKeyboard {
     // the bindings above but skip autostart instead of throwing, so a
     // component can still call startListeners() once mounted on the client.
     const canListen = typeof this.#target.addEventListener === "function";
-    const shouldAutostart = isBoolean(props.autostart) ? props.autostart : true;
+    const shouldAutostart =
+      typeof props.autostart === "boolean" ? props.autostart : true;
 
     if (shouldAutostart && !canListen) {
       // eslint-disable-next-line no-console -- this is the only signal a consumer gets that autostart was skipped; failing silently would be worse.

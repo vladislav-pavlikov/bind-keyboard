@@ -1,7 +1,3 @@
-import compact from "lodash/compact";
-import isString from "lodash/isString";
-import last from "lodash/last";
-
 import type {
   KeyMode,
   KeyCombination,
@@ -51,10 +47,12 @@ const keyParser = (
   mode: KeyMode = "key",
   ignoreModifiers = false,
 ): KeyCombination => {
-  if (isString(keyCombination)) {
-    const p = compact(
-      keyCombination.toLowerCase().replaceAll(" ", "").split("+"),
-    );
+  if (typeof keyCombination === "string") {
+    const p = keyCombination
+      .toLowerCase()
+      .replaceAll(" ", "")
+      .split("+")
+      .filter(Boolean);
 
     // "cmdOrCtrl" is a platform-neutral alias, not a real modifier — it
     // resolves to metaKey on Mac or ctrlKey elsewhere *before* reaching
@@ -63,7 +61,8 @@ const keyParser = (
     // "ctrl"/"shift"/"alt"/"meta" already never end up as the base key
     // unless they're the only token present.
     const isModPressed = p.includes("cmdorctrl");
-    const key = last(p.filter((token) => token !== "cmdorctrl"));
+    const nonModTokens = p.filter((token) => token !== "cmdorctrl");
+    const [key] = nonModTokens.slice(-1);
 
     return getKeyCombination(
       {
