@@ -88,7 +88,6 @@ const getKeyboardRows = (isMac: boolean): KeyDef[][] => [
         { code: "Space", label: "", width: "space" },
         { code: "MetaRight", label: "⌘" },
         { code: "AltRight", label: "⌥" },
-        { code: "ControlRight", label: "control", width: "1.5" },
       ]
     : [
         { code: "ControlLeft", label: "Ctrl", width: "1.5" },

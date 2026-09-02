@@ -25,17 +25,17 @@ This seeds the initial state of a new sidebar control — a `.segmented` toggle 
 
 Only the bottom modifier row. Everything else (function row, number row, QWERTY block, Tab, Caps Lock, both Shift keys) is identical in both modes — same labels, same order, same `code` values.
 
-| Slot | Windows/Linux           | Mac                        |
-| ---- | ----------------------- | -------------------------- |
-| 1    | `ControlLeft` → "Ctrl"  | `ControlLeft` → "control"  |
-| 2    | `MetaLeft` → "Win"      | `AltLeft` → "⌥"            |
-| 3    | `AltLeft` → "Alt"       | `MetaLeft` → "⌘"           |
-| 4    | Space                   | Space                      |
-| 5    | `AltRight` → "Alt"      | `MetaRight` → "⌘"          |
-| 6    | `MetaRight` → "Win"     | `AltRight` → "⌥"           |
-| 7    | `ControlRight` → "Ctrl" | `ControlRight` → "control" |
+| Slot | Windows/Linux           | Mac                       |
+| ---- | ----------------------- | ------------------------- |
+| 1    | `ControlLeft` → "Ctrl"  | `ControlLeft` → "control" |
+| 2    | `MetaLeft` → "Win"      | `AltLeft` → "⌥"           |
+| 3    | `AltLeft` → "Alt"       | `MetaLeft` → "⌘"          |
+| 4    | Space                   | Space                     |
+| 5    | `AltRight` → "Alt"      | `MetaRight` → "⌘"         |
+| 6    | `MetaRight` → "Win"     | `AltRight` → "⌥"          |
+| 7    | `ControlRight` → "Ctrl" | _(none)_                  |
 
-(Windows/Linux column is the existing order, just renaming "Meta" → "Win" for clarity. Mac column swaps Option/Command into their real physical order — Control, Option, Command — while keeping a symmetric 7-key row rather than trying to model the exact key count of any specific physical Mac keyboard.)
+(Windows/Linux column is the existing order, just renaming "Meta" → "Win" for clarity. Mac column swaps Option/Command into their real physical order — Control, Option, Command. Corrected after initial review: real Mac keyboards — MacBook built-ins and the current Magic Keyboard — have no physical right Control key at all, so the Mac bottom row is six keys, not a symmetric seven; the Windows/Linux row stays at seven since a right Ctrl is standard there.)
 
 Two more labels change on Mac only, same `code`, same position in their existing row:
 
