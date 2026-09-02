@@ -8,14 +8,18 @@
 
 `bind-keyboard` is a lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations. It's designed to simplify handling keyboard events in your web applications.
 
+**[Live demo →](https://bind-keyboard.gitlab.io/bind-keyboard/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements` and a live shortcuts panel.
+
 ## Features
 
 - Easily bind callback functions to specific key combinations, including multiple combinations per callback.
 - Supports preventing repeated key press events when holding down a key.
 - Prevents intercepting key events when typing in input fields — with a per-binding override for shortcuts (e.g. `Escape`) that should still fire.
 - Layout-agnostic matching via `event.code`, as an alternative to `event.key`.
-- Debugging options for different levels of output.
+- Debugging options for different levels of output, including a heads-up when a binding commonly collides with a browser/OS shortcut (e.g. `ctrl+p` for Print).
 - Safe to construct during server-side rendering — it skips autostart instead of throwing when there's no DOM yet.
+
+Not currently supported: key chords/sequences (e.g. a Vim-style "press `g` then `o`") or "or" alternates (e.g. "`shift+g` or `o`") — every binding is a single, simultaneous key combination.
 
 ## Installation
 
@@ -79,6 +83,8 @@ bindKeyboard.add("ctrl+z", undo, true, "keydown", {
 });
 ```
 
+Throws `KeybindError` for an invalid `type`, or when `override: false` and a binding already exists for that combination (see [Errors and types](#errors-and-types) below).
+
 ### `.remove(keyCombination, type = "keypress")`
 
 Removes a single binding. Returns `true` if a binding was found and removed.
@@ -112,6 +118,34 @@ Stops listening and clears every binding in one call — use it in a component's
 ### `.getTarget()`
 
 Returns the `EventTarget` this instance listens on.
+
+## Errors and types
+
+`.add()` and `.remove()` throw `KeybindError` (also exported at the top level) on misuse:
+
+```ts
+import { BindKeyboard, KeybindError } from "bind-keyboard";
+
+try {
+  bindKeyboard.add("ctrl+a", callback, true, "keypress", { override: false });
+} catch (error) {
+  if (error instanceof KeybindError) {
+    // a binding for "ctrl + a" already existed
+  }
+}
+```
+
+Every type used above — `AddBindingOptions`, `KeybindCallback`, `ConstructorProps`, `KeybindInitializer`, `KeyMode`, `KeyCombination`, `KeyCombinationConstruct`, `EventType`, `DebugLevel` — is importable via the `Types` namespace:
+
+```ts
+import type { Types } from "bind-keyboard";
+
+const handleShortcut: Types.KeybindCallback = (event) => {
+  // event is a real KeyboardEvent
+};
+
+const options: Types.AddBindingOptions = { description: "Undo" };
+```
 
 ## License
 
