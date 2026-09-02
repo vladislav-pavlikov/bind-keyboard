@@ -162,6 +162,57 @@ describe("Keybind Library Tests", () => {
     }
   });
 
+  it('should resolve the "cmdOrCtrl" alias to ctrl on non-Mac and meta on Mac', () => {
+    const { platform: originalPlatform } = navigator;
+
+    try {
+      Object.defineProperty(navigator, "platform", {
+        value: "Win32",
+        configurable: true,
+      });
+      expect(BindKeyboard.keyParser("cmdOrCtrl+a")).toBe("ctrl + a");
+      expect(BindKeyboard.keyParser("cmdOrCtrl")).toBe("ctrl");
+
+      Object.defineProperty(navigator, "platform", {
+        value: "MacIntel",
+        configurable: true,
+      });
+      expect(BindKeyboard.keyParser("cmdOrCtrl+a")).toBe("meta + a");
+      expect(BindKeyboard.keyParser("cmdOrCtrl")).toBe("meta");
+      expect(BindKeyboard.keyParser("cmdOrCtrl+shift+z")).toBe(
+        "shift + meta + z",
+      );
+    } finally {
+      Object.defineProperty(navigator, "platform", {
+        value: originalPlatform,
+        configurable: true,
+      });
+    }
+  });
+
+  it('should trigger a "cmdOrCtrl" binding on a real Cmd keydown when running on Mac', () => {
+    const { platform: originalPlatform } = navigator;
+
+    try {
+      Object.defineProperty(navigator, "platform", {
+        value: "MacIntel",
+        configurable: true,
+      });
+
+      const callback = jest.fn();
+      bindKeyboard.add("cmdOrCtrl+a", callback);
+
+      dispatchEvent(new KeyboardEvent("keypress", { key: "a", metaKey: true }));
+
+      expect(callback).toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(navigator, "platform", {
+        value: originalPlatform,
+        configurable: true,
+      });
+    }
+  });
+
   it("should bind the same callback to an array of key combinations", () => {
     const callback = jest.fn();
     const entries = bindKeyboard.add(["ctrl+a", "ctrl+b"], callback);

@@ -8,6 +8,7 @@ import type {
   KeyCombinationConstruct,
 } from "../types";
 import getKeyCombination from "./getKeyCombination";
+import isMacPlatform from "./isMacPlatform";
 
 // Best-guess `code` for a single character, used only when parsing a string
 // key combination (which carries no `code` of its own) under `mode: "code"`.
@@ -40,7 +41,7 @@ const guessCodeFromKey = (key?: string): string | undefined => {
 /**
  * Parses the key combination into a standardized format.
  *
- * @param {KeyCombination | KeyCombinationConstruct} keyCombination - The key combination to parse.
+ * @param {KeyCombination | KeyCombinationConstruct} keyCombination - The key combination to parse. A string form may use "cmdOrCtrl" as a platform-neutral modifier that resolves to metaKey on Mac or ctrlKey elsewhere (e.g. "cmdOrCtrl+a").
  * @param {KeyMode} [mode='key'] - Key matching mode: 'key' uses event.key, 'code' uses event.code (layout-agnostic).
  * @returns {KeyCombination} The standardized key combination.
  */
@@ -52,14 +53,22 @@ const keyParser = (
     const p = compact(
       keyCombination.toLowerCase().replaceAll(" ", "").split("+"),
     );
-    const key = last(p);
+
+    // "cmdOrCtrl" is a platform-neutral alias, not a real modifier — it
+    // resolves to metaKey on Mac or ctrlKey elsewhere *before* reaching
+    // getKeyCombination, which only ever knows about the four real
+    // KeyboardEvent modifier flags. It's excluded from `key` the same way
+    // "ctrl"/"shift"/"alt"/"meta" already never end up as the base key
+    // unless they're the only token present.
+    const isModPressed = p.includes("cmdorctrl");
+    const key = last(p.filter((token) => token !== "cmdorctrl"));
 
     return getKeyCombination(
       {
-        ctrlKey: p.includes("ctrl"),
+        ctrlKey: p.includes("ctrl") || (isModPressed && !isMacPlatform()),
         shiftKey: p.includes("shift"),
         altKey: p.includes("alt"),
-        metaKey: p.includes("meta"),
+        metaKey: p.includes("meta") || (isModPressed && isMacPlatform()),
         key,
         code: guessCodeFromKey(key),
       },

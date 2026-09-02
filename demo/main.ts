@@ -239,8 +239,12 @@ const flashShortcut = (keyCombination: string): void => {
 };
 
 const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
+  // "cmdOrCtrl" resolves to Cmd on Mac / Ctrl elsewhere, so these three
+  // match each platform's own native muscle memory (Cmd+A really is Select
+  // All on Mac) instead of always being the physical Ctrl key regardless of
+  // platform.
   const [selectAll] = bindKeyboard.add(
-    "ctrl+a",
+    "cmdOrCtrl+a",
     (ev) => {
       ev.preventDefault();
       flashShortcut(selectAll.keyCombination);
@@ -251,7 +255,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
   );
 
   const [undo] = bindKeyboard.add(
-    "ctrl+z",
+    "cmdOrCtrl+z",
     () => {
       flashShortcut(undo.keyCombination);
     },
@@ -261,7 +265,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
   );
 
   const [toggleTheme] = bindKeyboard.add(
-    "ctrl+/",
+    "cmdOrCtrl+/",
     (ev) => {
       ev.preventDefault();
       document.body.classList.toggle("light");
@@ -341,9 +345,10 @@ const renderShortcuts = (bindKeyboard: BindKeyboard): void => {
 // --- Live code sample --------------------------------------------------------
 // Mirrors the currently selected keyMode/checkInputElements settings into a
 // copy-pasteable snippet, so the sample the viewer copies always matches what
-// they're actually seeing the demo do. "ctrl+k" is a neutral placeholder —
-// it isn't bound to anything real on this page, unlike the demo's own
-// bindings (whose effects, like ctrl+a's, aren't always obvious to copy).
+// they're actually seeing the demo do. "cmdOrCtrl+k" is a neutral
+// placeholder — it isn't bound to anything real on this page, unlike the
+// demo's own bindings — that also doubles as a demonstration of the
+// cmdOrCtrl alias itself (Cmd on Mac, Ctrl elsewhere).
 
 const codeSampleEl = getElement<HTMLElement>("#code-sample-text");
 const copyCodeButton = getElement<HTMLButtonElement>("#copy-code");
@@ -362,7 +367,7 @@ const renderCodeSample = (): void => {
     `  checkInputElements: ${String(checkInputElements)},`,
     `});`,
     ``,
-    `bindKeyboard.add("ctrl+k", (event) => {`,
+    `bindKeyboard.add("cmdOrCtrl+k", (event) => {`,
     `  event.preventDefault();`,
     `  // your code here`,
     `});`,

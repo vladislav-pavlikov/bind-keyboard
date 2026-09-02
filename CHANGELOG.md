@@ -9,6 +9,7 @@
 - Fixed the grammar of the "no key or modifier provided" error message.
 - Fixed a lone modifier press (e.g. tapping Ctrl by itself) producing a combination like `"ctrl + control"`/`"ctrl + controlleft"` instead of plain `"ctrl"` — a binding registered as `"ctrl"` never matched a real standalone press of that key. Affected every modifier under `keyMode: "code"`, and `ctrl` specifically under `keyMode: "key"`.
 - The demo page's on-screen keyboard now matches the viewer's platform (Mac vs Windows/Linux) — correct `⌘`/`⌥` symbols, bottom-row key order, and `Delete`/`Return` labels on Mac — with auto-detection and a manual toggle.
+- New `"cmdOrCtrl"` modifier alias in string key combinations (e.g. `"cmdOrCtrl+a"`), resolving to `metaKey` on Mac and `ctrlKey` everywhere else — matches each platform's own native shortcut modifier instead of always requiring the physical Ctrl key.
 
 ## 0.1.0
 

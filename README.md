@@ -16,6 +16,7 @@
 - Supports preventing repeated key press events when holding down a key.
 - Prevents intercepting key events when typing in input fields — with a per-binding override for shortcuts (e.g. `Escape`) that should still fire.
 - Layout-agnostic matching via `event.code`, as an alternative to `event.key`.
+- `"cmdOrCtrl"` — a platform-neutral modifier alias in string combinations, resolving to `metaKey` on Mac and `ctrlKey` everywhere else.
 - Debugging options for different levels of output, including a heads-up when a binding commonly collides with a browser/OS shortcut (e.g. `ctrl+p` for Print).
 - Safe to construct during server-side rendering — it skips autostart instead of throwing when there's no DOM yet.
 
@@ -74,7 +75,10 @@ new BindKeyboard({
 Registers a binding. `keyCombination` is a string (`"ctrl+a"`), a construct object (`{ key: "a", ctrlKey: true }`), or an array of either to bind the same callback to several combinations at once. Returns the created `KeybindEntry[]` (one per combination).
 
 ```ts
-bindKeyboard.add(["ctrl+a", "meta+a"], selectAll);
+// "cmdOrCtrl" resolves to metaKey on Mac, ctrlKey elsewhere — use it instead
+// of an explicit ["ctrl+a", "meta+a"] array when you want each platform's
+// own native modifier, e.g. real Cmd+A on Mac rather than always Ctrl+A.
+bindKeyboard.add("cmdOrCtrl+a", selectAll);
 
 bindKeyboard.add("ctrl+z", undo, true, "keydown", {
   description: "Undo", // shows up in getAllBindings(), useful for a shortcuts help screen
