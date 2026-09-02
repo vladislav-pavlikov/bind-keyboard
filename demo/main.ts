@@ -164,18 +164,29 @@ const currentIsMac = (): boolean =>
   getElement<HTMLButtonElement>("#layout-toggle .active").dataset.value ===
   "mac";
 
-// getKeyCombination's "meta" token is deliberately platform-neutral (it
-// mirrors KeyboardEvent.metaKey, matched identically everywhere) — but on
-// screen it should read the way the current layout's own key is labeled,
-// same as the on-screen keyboard already does (⌘ on Mac, "Win" elsewhere).
-// Purely a display transform: matching/registration always still use "meta".
+// getKeyCombination's "meta"/"alt" tokens are deliberately platform-neutral
+// (they mirror KeyboardEvent.metaKey/altKey, matched identically everywhere)
+// — but on screen they should read the way the current layout's own keys are
+// labeled, same as the on-screen keyboard already does (⌘/⌥ on Mac, "Win"/
+// "alt" elsewhere). Purely a display transform: matching/registration always
+// still use "meta"/"alt".
+const DISPLAY_TOKEN_OVERRIDES: Partial<
+  Record<string, [mac: string, other: string]>
+> = {
+  meta: ["⌘", "win"],
+  alt: ["⌥", "alt"],
+};
+
 const formatKeyCombinationForDisplay = (
   keyCombination: string,
   isMac: boolean,
 ): string =>
   keyCombination
     .split(" + ")
-    .map((token) => (token === "meta" ? (isMac ? "⌘" : "win") : token))
+    .map((token) => {
+      const { [token]: override } = DISPLAY_TOKEN_OVERRIDES;
+      return override ? override[isMac ? 0 : 1] : token;
+    })
     .join(" + ");
 
 document.addEventListener("keydown", (ev) => {
