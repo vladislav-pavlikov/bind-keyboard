@@ -82,15 +82,23 @@ body {
 }
 
 .layout {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  /* The keyboard's natural (unscrollable) width is dominated by its widest
+     row, the number row, at ~665px (after the size trim below) — 5fr:2fr
+     leaves it enough room at this max-width that it shouldn't need its
+     overflow-x: auto fallback on any reasonably-sized desktop window. */
+  grid-template-columns: 5fr 2fr;
   gap: 24px;
-  align-items: start;
+  /* The sidebar is almost always taller than the keyboard + combo readout
+     — align-items: start pinned the shorter column to the top, dumping
+     all of that height difference as dead space below it. Center instead
+     so it's split above/below. */
+  align-items: center;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
   .layout {
     grid-template-columns: 1fr;
   }
@@ -135,33 +143,32 @@ body {
 .keyboard {
   display: inline-flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   padding: 16px;
   background: var(--panel);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  /* The widest row (the number row) is ~740px at full size — wider than its
-     own column at most viewport widths, not just narrow ones (the two-
-     column desktop layout only gives the keyboard column ~2/3 of a 1100px
-     row). Rather than trying to reflow individual keys to fit every
-     possible width, cap the whole board at its container's width and let
-     it scroll horizontally — same pattern already used for the code
-     blocks below. */
+  /* The widest row (the number row) is ~665px at this size, which the
+     two-column desktop layout's 5fr share comfortably covers on any
+     reasonably-sized window — this is a fallback for genuinely
+     insufficient width (a manually narrowed desktop browser window, or a
+     phone before it scales down further below), not something normal
+     desktop use should ever actually trigger. */
   max-width: 100%;
   overflow-x: auto;
 }
 
 .kb-row {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
 .key {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  min-width: 44px;
+  height: 42px;
+  min-width: 40px;
   padding: 0 8px;
   background: var(--key);
   color: var(--text-dim);
@@ -176,11 +183,11 @@ body {
 }
 
 .key[data-width="1.5"] {
-  min-width: 68px;
+  min-width: 60px;
 }
 
 .key[data-width="2"] {
-  min-width: 88px;
+  min-width: 80px;
 }
 
 .key[data-width="space"] {
@@ -607,7 +614,7 @@ kbd {
 
 /* --- Mobile ------------------------------------------------------------ */
 
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
   body {
     padding: 16px;
   }
