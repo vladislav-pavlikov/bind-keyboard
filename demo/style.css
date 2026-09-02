@@ -556,6 +556,41 @@ kbd {
   box-shadow: 0 0 0 4px rgba(255, 138, 61, 0.35);
 }
 
+/* Toasts sit in their own row, independent of the character's position —
+   a flex row (not each absolutely centered) so several held at once (e.g.
+   moving *and* jumping) line up side by side instead of stacking on top
+   of each other. */
+.game-toasts {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.game-toast {
+  font: 18px var(--mono);
+  font-weight: bold;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 1;
+  transition:
+    transform 500ms ease,
+    opacity 500ms ease;
+}
+
+/* Applied on release — floats up and fades out, then the element is
+   removed once the transition finishes. */
+.game-toast.fading {
+  transform: translateY(-32px);
+  opacity: 0;
+}
+
 .code-sample {
   max-width: 1100px;
   margin: 24px auto 0;

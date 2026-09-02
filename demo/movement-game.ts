@@ -11,9 +11,11 @@ import { renderShortcutsInto } from "./shortcuts-list";
 // bindKeyboard.add() only ever fires once per discrete key event — there's
 // no built-in "is this key currently held" concept. Continuous movement is
 // built on top of that: pairs of keydown/keyup registrations flip a boolean,
-// and a requestAnimationFrame loop reads those booleans every frame. Jump,
-// duck, and dash are simpler — one discrete keydown each, driving a CSS
-// animation/class rather than a physics simulation.
+// and a requestAnimationFrame loop reads those booleans every frame. Jump
+// and duck are simpler — one discrete keydown each, driving a CSS
+// animation/class rather than a physics simulation. Dash is a discrete
+// keydown too, but with no matching "keyup" registration — see the toast
+// section below for why.
 
 const arenaEl = getElement<HTMLElement>("#game-arena");
 const positionEl = getElement<HTMLElement>("#game-character-position");
@@ -67,6 +69,50 @@ const dash = (direction: 1 | -1): void => {
   }, 220);
 };
 
+// --- Toasts ------------------------------------------------------------------
+// One toast per currently-pressed key, labeled with whatever was actually
+// pressed (e.g. "a" or "←" — the two never share a toast, even though they
+// do the same thing). Held in a flex row (see style.css) so several at
+// once line up instead of overlapping. Kept alive while its key is held;
+// fading it (float up + fade out, then remove once the transition ends) is
+// triggered on release for the "held" actions (move/duck/jump), or after a
+// fixed delay for dash — dash has no "keyup" registration of its own, since
+// "keyup" ignores modifiers (deliberately, so releasing "d" while Shift is
+// still held reliably resolves to plain "d" — see src/index.ts) and would
+// otherwise collide with plain "d"/"a"'s own release binding.
+
+const toastsEl = getElement<HTMLElement>("#game-toasts");
+const activeToasts = new Map<string, HTMLElement>();
+
+const showToast = (label: string): void => {
+  const existing = activeToasts.get(label);
+  if (existing) {
+    existing.classList.remove("fading");
+    return;
+  }
+
+  const toast = document.createElement("div");
+  toast.className = "game-toast";
+  toast.textContent = label;
+  toastsEl.appendChild(toast);
+  activeToasts.set(label, toast);
+};
+
+const fadeToast = (label: string): void => {
+  const toast = activeToasts.get(label);
+  if (!toast) return;
+
+  activeToasts.delete(label);
+  toast.classList.add("fading");
+  toast.addEventListener(
+    "transitionend",
+    () => {
+      toast.remove();
+    },
+    { once: true },
+  );
+};
+
 // keyMode: "code" so the physical W/A/S/D positions work the same
 // regardless of the visitor's keyboard layout (the way games conventionally
 // treat WASD), same reasoning as the main demo's keyMode toggle.
@@ -75,101 +121,144 @@ const bindKeyboard = new BindKeyboard({
   checkInputElements: true,
 });
 
-// Every action is bound to both its WASD key and the matching arrow key —
-// arrow keys default to scrolling the page, hence preventDefault() on all
-// of these (harmless for the letter keys, which have no default behavior
-// of their own to prevent). Descriptions are only set on the "keydown"
-// side of each pair — the "keyup" companions are just internal bookkeeping
-// (resetting a held-key flag), not something worth showing in the
-// "Bindings" popup below. renderShortcutsInto already skips entries with
-// no description.
-bindKeyboard.add(
-  ["a", "arrowleft"],
-  (ev) => {
-    ev.preventDefault();
+interface KeyAlternative {
+  combo: string;
+  label: string;
+}
+
+// Registers one "held" action (e.g. move left) across every alternative
+// combination that should trigger it (its WASD key and its arrow-key
+// equivalent) — each showing its own toast, keyed by its own label, so "a"
+// and "←" never share one. onRelease is optional: jump doesn't need one for
+// its own game logic (it already ignores being held), but still gets a
+// toast that properly fades on its own key's release rather than a fixed
+// delay, since — unlike dash — none of its combos double as another
+// action's base key on "keyup".
+const registerHeldAction = (
+  alternatives: KeyAlternative[],
+  description: string,
+  onPress: () => void,
+  onRelease?: () => void,
+): void => {
+  for (const { combo, label } of alternatives) {
+    bindKeyboard.add(
+      combo,
+      (ev) => {
+        ev.preventDefault();
+        showToast(label);
+        onPress();
+      },
+      true,
+      "keydown",
+      { description },
+    );
+    bindKeyboard.add(
+      combo,
+      () => {
+        fadeToast(label);
+        onRelease?.();
+      },
+      true,
+      "keyup",
+    );
+  }
+};
+
+// Registers one momentary action (dash) that fades its own toast after a
+// fixed delay instead of on release.
+const registerMomentaryAction = (
+  alternatives: KeyAlternative[],
+  description: string,
+  onTrigger: () => void,
+): void => {
+  for (const { combo, label } of alternatives) {
+    bindKeyboard.add(
+      combo,
+      (ev) => {
+        ev.preventDefault();
+        showToast(label);
+        setTimeout(() => {
+          fadeToast(label);
+        }, 500);
+        onTrigger();
+      },
+      true,
+      "keydown",
+      { description },
+    );
+  }
+};
+
+registerHeldAction(
+  [
+    { combo: "a", label: "a" },
+    { combo: "arrowleft", label: "←" },
+  ],
+  "Move left",
+  () => {
     movingLeft = true;
   },
-  true,
-  "keydown",
-  { description: "Move left" },
-);
-bindKeyboard.add(
-  ["a", "arrowleft"],
   () => {
     movingLeft = false;
   },
-  true,
-  "keyup",
 );
-bindKeyboard.add(
-  ["d", "arrowright"],
-  (ev) => {
-    ev.preventDefault();
+registerHeldAction(
+  [
+    { combo: "d", label: "d" },
+    { combo: "arrowright", label: "→" },
+  ],
+  "Move right",
+  () => {
     movingRight = true;
   },
-  true,
-  "keydown",
-  { description: "Move right" },
-);
-bindKeyboard.add(
-  ["d", "arrowright"],
   () => {
     movingRight = false;
   },
-  true,
-  "keyup",
 );
-bindKeyboard.add(
-  ["s", "arrowdown"],
-  (ev) => {
-    ev.preventDefault();
+registerHeldAction(
+  [
+    { combo: "s", label: "s" },
+    { combo: "arrowdown", label: "↓" },
+  ],
+  "Duck",
+  () => {
     ducking = true;
     characterEl.classList.add("ducking");
   },
-  true,
-  "keydown",
-  { description: "Duck" },
-);
-bindKeyboard.add(
-  ["s", "arrowdown"],
   () => {
     ducking = false;
     characterEl.classList.remove("ducking");
   },
-  true,
-  "keyup",
+);
+registerHeldAction(
+  [
+    { combo: "space", label: "space" },
+    { combo: "w", label: "w" },
+    { combo: "arrowup", label: "↑" },
+  ],
+  "Jump",
+  jump,
 );
 
-bindKeyboard.add(
-  ["space", "w", "arrowup"],
-  (ev) => {
-    ev.preventDefault();
-    jump();
-  },
-  true,
-  "keydown",
-  { description: "Jump" },
-);
-
-bindKeyboard.add(
-  ["shift+d", "shift+arrowright"],
-  (ev) => {
-    ev.preventDefault();
+registerMomentaryAction(
+  [
+    { combo: "shift+d", label: "shift + d" },
+    { combo: "shift+arrowright", label: "shift + →" },
+  ],
+  "Dash right",
+  () => {
     dash(1);
   },
-  true,
-  "keydown",
-  { description: "Dash right" },
 );
-bindKeyboard.add(
-  ["shift+a", "shift+arrowleft"],
-  (ev) => {
-    ev.preventDefault();
+registerMomentaryAction(
+  [
+    { combo: "shift+a", label: "shift + a" },
+    { combo: "shift+arrowleft", label: "shift + ←" },
+  ],
+  "Dash left",
+  () => {
     dash(-1);
   },
-  true,
-  "keydown",
-  { description: "Dash left" },
 );
 
 const tick = (): void => {
