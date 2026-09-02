@@ -37,6 +37,14 @@ class BindKeyboard {
     Map<Types.KeyCombination, Classes.KeybindEntry>
   >;
 
+  // Tracks, per event type, the combination whose callback last actually
+  // ran — see #listener for why this (not just event.repeat) is what
+  // preventRepeat needs to compare against.
+  readonly #lastFiredCombination: Record<
+    Types.EventType,
+    Types.KeyCombination | undefined
+  >;
+
   readonly #checkInputElements: boolean;
   readonly #keyMode: Types.KeyMode;
 
@@ -58,6 +66,11 @@ class BindKeyboard {
       keydown: new Map(),
       keypress: new Map(),
       keyup: new Map(),
+    };
+    this.#lastFiredCombination = {
+      keydown: undefined,
+      keypress: undefined,
+      keyup: undefined,
     };
     this.#checkInputElements = props.checkInputElements || false;
     this.#keyMode = props.keyMode || "key";
@@ -122,12 +135,25 @@ class BindKeyboard {
 
     if (shouldSkipForInputElement) return;
 
-    if (ev.repeat && entry?.preventRepeat) return;
+    // event.repeat reflects the *physical key* being auto-repeated by the
+    // OS, not that this specific combination already fired — if a modifier
+    // is pressed or released mid-hold, the same repeating keydown can
+    // resolve to a brand-new combination (e.g. holding "d" and then also
+    // pressing Shift turns d's next auto-repeat into "shift + d"). Only
+    // treat it as a repeat to suppress when it repeats the combination that
+    // last actually fired for this event type — not just any repeat of the
+    // underlying key — so that new combination still gets its first,
+    // legitimate firing.
+    const isRepeatOfLastFired =
+      ev.repeat && keyCombination === this.#lastFiredCombination[eventType];
+
+    if (isRepeatOfLastFired && entry?.preventRepeat) return;
 
     if (this.#debug === 2 || (this.#debug === 1 && entry)) {
       logDebugEvent({ ev, keyCombination, callback: entry?.callback });
     }
 
+    if (entry) this.#lastFiredCombination[eventType] = keyCombination;
     entry?.callback(ev);
   };
 

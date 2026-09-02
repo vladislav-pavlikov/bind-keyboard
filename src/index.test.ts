@@ -162,6 +162,52 @@ describe("Keybind Library Tests", () => {
     }
   });
 
+  it("should fire a binding whose combination first arises from a modifier changing mid-hold, even though the underlying key is auto-repeating", () => {
+    const bindKeyboardCode = new BindKeyboard({ keyMode: "code" });
+    const move = jest.fn();
+    const dash = jest.fn();
+    bindKeyboardCode.add("d", move, true, "keydown");
+    bindKeyboardCode.add("shift+d", dash, true, "keydown");
+
+    // Press and hold "d" — fires once, then auto-repeats are suppressed.
+    dispatchEvent(
+      new KeyboardEvent("keydown", { code: "KeyD", key: "d", repeat: false }),
+    );
+    dispatchEvent(
+      new KeyboardEvent("keydown", { code: "KeyD", key: "d", repeat: true }),
+    );
+    expect(move).toHaveBeenCalledTimes(1);
+
+    // Shift is now *also* held — "d"'s next OS auto-repeat carries
+    // shiftKey: true, genuinely resolving to "shift + d" for the first
+    // time. event.repeat is still true (the OS is repeating the "d" key,
+    // regardless of Shift's involvement), but this must still fire: it's
+    // not a repeat of a combination that has already fired.
+    dispatchEvent(
+      new KeyboardEvent("keydown", {
+        code: "KeyD",
+        key: "d",
+        shiftKey: true,
+        repeat: true,
+      }),
+    );
+    expect(dash).toHaveBeenCalledTimes(1);
+
+    // Further auto-repeats of "shift + d" itself should still be
+    // suppressed, same as any other held combination.
+    dispatchEvent(
+      new KeyboardEvent("keydown", {
+        code: "KeyD",
+        key: "d",
+        shiftKey: true,
+        repeat: true,
+      }),
+    );
+    expect(dash).toHaveBeenCalledTimes(1);
+
+    bindKeyboardCode.stopListeners();
+  });
+
   it('should resolve the "cmdOrCtrl" alias to ctrl on non-Mac and meta on Mac', () => {
     const { platform: originalPlatform } = navigator;
 
