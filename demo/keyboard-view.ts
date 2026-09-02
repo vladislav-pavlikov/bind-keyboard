@@ -159,12 +159,18 @@ export const currentIsMac = (): boolean =>
 // — but on screen they should read the way the current layout's own keys are
 // labeled, same as the on-screen keyboard already does (⌘/⌥ on Mac, "Win"/
 // "alt" elsewhere). Purely a display transform: matching/registration always
-// still use "meta"/"alt".
+// still use "meta"/"alt". Arrow keys aren't platform-dependent, but get the
+// same treatment — "arrowleft" reads a lot better as "←" (used by the bonus
+// game's bindings popup).
 const DISPLAY_TOKEN_OVERRIDES: Partial<
   Record<string, [mac: string, other: string]>
 > = {
   meta: ["⌘", "win"],
   alt: ["⌥", "alt"],
+  arrowleft: ["←", "←"],
+  arrowright: ["→", "→"],
+  arrowup: ["↑", "↑"],
+  arrowdown: ["↓", "↓"],
 };
 
 export const formatKeyCombinationForDisplay = (

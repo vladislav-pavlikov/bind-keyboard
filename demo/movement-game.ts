@@ -75,13 +75,18 @@ const bindKeyboard = new BindKeyboard({
   checkInputElements: true,
 });
 
-// Descriptions are only set on the "keydown" side of each pair — the
-// "keyup" companions are just internal bookkeeping (resetting a held-key
-// flag), not something worth showing in the "Bindings" popup below.
-// renderShortcutsInto already skips entries with no description.
+// Every action is bound to both its WASD key and the matching arrow key —
+// arrow keys default to scrolling the page, hence preventDefault() on all
+// of these (harmless for the letter keys, which have no default behavior
+// of their own to prevent). Descriptions are only set on the "keydown"
+// side of each pair — the "keyup" companions are just internal bookkeeping
+// (resetting a held-key flag), not something worth showing in the
+// "Bindings" popup below. renderShortcutsInto already skips entries with
+// no description.
 bindKeyboard.add(
-  "a",
-  () => {
+  ["a", "arrowleft"],
+  (ev) => {
+    ev.preventDefault();
     movingLeft = true;
   },
   true,
@@ -89,7 +94,7 @@ bindKeyboard.add(
   { description: "Move left" },
 );
 bindKeyboard.add(
-  "a",
+  ["a", "arrowleft"],
   () => {
     movingLeft = false;
   },
@@ -97,8 +102,9 @@ bindKeyboard.add(
   "keyup",
 );
 bindKeyboard.add(
-  "d",
-  () => {
+  ["d", "arrowright"],
+  (ev) => {
+    ev.preventDefault();
     movingRight = true;
   },
   true,
@@ -106,7 +112,7 @@ bindKeyboard.add(
   { description: "Move right" },
 );
 bindKeyboard.add(
-  "d",
+  ["d", "arrowright"],
   () => {
     movingRight = false;
   },
@@ -114,8 +120,9 @@ bindKeyboard.add(
   "keyup",
 );
 bindKeyboard.add(
-  "s",
-  () => {
+  ["s", "arrowdown"],
+  (ev) => {
+    ev.preventDefault();
     ducking = true;
     characterEl.classList.add("ducking");
   },
@@ -124,7 +131,7 @@ bindKeyboard.add(
   { description: "Duck" },
 );
 bindKeyboard.add(
-  "s",
+  ["s", "arrowdown"],
   () => {
     ducking = false;
     characterEl.classList.remove("ducking");
@@ -133,9 +140,8 @@ bindKeyboard.add(
   "keyup",
 );
 
-// Space's default page-scroll would otherwise fight with using it to jump.
 bindKeyboard.add(
-  ["space", "w"],
+  ["space", "w", "arrowup"],
   (ev) => {
     ev.preventDefault();
     jump();
@@ -146,8 +152,9 @@ bindKeyboard.add(
 );
 
 bindKeyboard.add(
-  "shift+d",
-  () => {
+  ["shift+d", "shift+arrowright"],
+  (ev) => {
+    ev.preventDefault();
     dash(1);
   },
   true,
@@ -155,8 +162,9 @@ bindKeyboard.add(
   { description: "Dash right" },
 );
 bindKeyboard.add(
-  "shift+a",
-  () => {
+  ["shift+a", "shift+arrowleft"],
+  (ev) => {
+    ev.preventDefault();
     dash(-1);
   },
   true,
