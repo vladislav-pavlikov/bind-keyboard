@@ -218,4 +218,82 @@ describe("Keybind Library Tests", () => {
 
     warnSpy.mockRestore();
   });
+
+  it("should log every observed key event when debug is 2", () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- intentionally silences console.log noise for this test.
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugKeyboard = new BindKeyboard({ debug: 2 });
+
+    dispatchEvent(new KeyboardEvent("keypress", { key: "z" }));
+    expect(logSpy).toHaveBeenCalled();
+
+    logSpy.mockRestore();
+    debugKeyboard.destroy();
+  });
+
+  it("should log only matched bindings when debug is 1", () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- intentionally silences console.log noise for this test.
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const debugKeyboard = new BindKeyboard({ debug: 1 });
+    debugKeyboard.add("ctrl+a", jest.fn());
+
+    dispatchEvent(new KeyboardEvent("keypress", { key: "z" }));
+    expect(logSpy).not.toHaveBeenCalled();
+
+    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    expect(logSpy).toHaveBeenCalled();
+
+    logSpy.mockRestore();
+    debugKeyboard.destroy();
+  });
+
+  it("should warn (under debug) when registering a commonly-reserved browser shortcut, and stay silent otherwise", () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- intentionally silences console.warn noise for this test.
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const debugKeyboard = new BindKeyboard({ debug: 1, autostart: false });
+
+    debugKeyboard.add("ctrl+p", jest.fn());
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("Print"));
+
+    warnSpy.mockClear();
+    bindKeyboard.add("ctrl+p", jest.fn());
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+  });
+
+  it("should throw KeybindError when no key or modifier is provided", () => {
+    expect(() => BindKeyboard.getKeyCombination({})).toThrow(KeybindError);
+  });
+
+  it("should expose keyParser and getKeyCombination as static methods", () => {
+    expect(BindKeyboard.keyParser("ctrl+a")).toBe("ctrl + a");
+    expect(BindKeyboard.getKeyCombination({ key: "a", ctrlKey: true })).toBe(
+      "ctrl + a",
+    );
+  });
+
+  it("should return the configured target from .getTarget()", () => {
+    const target = document.createElement("div");
+    const targeted = new BindKeyboard({ target });
+
+    expect(targeted.getTarget()).toBe(target);
+
+    targeted.destroy();
+  });
+
+  it("should still work via the deprecated startListners/stopListners aliases", () => {
+    const callback = jest.fn();
+    const aliased = new BindKeyboard({ autostart: false });
+    aliased.add("ctrl+a", callback);
+
+    aliased.startListners();
+    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    expect(callback).toHaveBeenCalled();
+
+    aliased.stopListners();
+    callback.mockClear();
+    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    expect(callback).not.toHaveBeenCalled();
+  });
 });
