@@ -90,7 +90,7 @@ body {
   align-items: start;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
   }
@@ -405,7 +405,13 @@ kbd {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* auto-fit/minmax instead of a hardcoded 2-column + breakpoint pair: a
+     fixed breakpoint has to guess every device's width in advance, and
+     wide phones/foldables/small tablets in portrait routinely fall between
+     "phone" and "tablet" breakpoints — auto-fit just collapses to one
+     column itself whenever there isn't room for a second 240px+ one,
+     correctly regardless of the exact viewport width. */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px 24px;
 }
 
@@ -424,12 +430,6 @@ kbd {
 
 .feature-icon {
   flex: 0 0 auto;
-}
-
-@media (max-width: 800px) {
-  .features-list {
-    grid-template-columns: 1fr;
-  }
 }
 
 .code-sample {
@@ -595,7 +595,7 @@ kbd {
 
 /* --- Mobile ------------------------------------------------------------ */
 
-@media (max-width: 800px) {
+@media (max-width: 960px) {
   body {
     padding: 16px;
   }
@@ -607,6 +607,34 @@ kbd {
   .code-sample,
   .features {
     padding: 16px;
+  }
+
+  /* Several text sizes were tuned for a dense desktop sidebar viewed up
+     close on a mouse/trackpad — bump them up for comfortable phone/tablet
+     reading. Small-caps section labels (.control-label, .features h2,
+     .code-sample-header h2) are left alone; those are intentionally
+     eyebrow-sized regardless of screen size. */
+  .hint,
+  .control-desc {
+    font-size: 13px;
+  }
+
+  .features-list li {
+    font-size: 15px;
+  }
+
+  .shortcuts-list li {
+    font-size: 14px;
+  }
+
+  .code-window-body code {
+    font-size: 14px;
+  }
+
+  .header-link,
+  .copy-button,
+  .segmented button {
+    font-size: 13px;
   }
 }
 
