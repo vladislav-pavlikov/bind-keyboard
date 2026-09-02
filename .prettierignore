@@ -5,6 +5,6 @@ node_modules
 dist
 build
 lib
-public
+/public
 
 !.*.js

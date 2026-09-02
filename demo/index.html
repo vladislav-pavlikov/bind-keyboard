@@ -3,28 +3,88 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bind-keyboard demo</title>
+    <title>bind-keyboard — Keyboard Shortcut Library for JavaScript & TypeScript</title>
+    <meta
+      name="description"
+      content="A lightweight (~5KB gzip), dependency-free TypeScript library for binding keyboard shortcuts in the browser — layout-agnostic matching, a cross-platform cmdOrCtrl modifier, and input-safe by default."
+    />
+    <link rel="canonical" href="https://bind-keyboard.gitlab.io/bind-keyboard/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="bind-keyboard" />
+    <meta property="og:url" content="https://bind-keyboard.gitlab.io/bind-keyboard/" />
+    <meta
+      property="og:title"
+      content="bind-keyboard — Keyboard Shortcut Library for JavaScript & TypeScript"
+    />
+    <meta
+      property="og:description"
+      content="A lightweight (~5KB gzip), dependency-free TypeScript library for binding keyboard shortcuts in the browser — layout-agnostic matching, a cross-platform cmdOrCtrl modifier, and input-safe by default."
+    />
+
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="bind-keyboard — Keyboard Shortcut Library for JavaScript & TypeScript"
+    />
+    <meta
+      name="twitter:description"
+      content="A lightweight (~5KB gzip), dependency-free TypeScript library for binding keyboard shortcuts in the browser."
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
+    />
     <link rel="stylesheet" href="./style.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "bind-keyboard",
+        "description": "A lightweight, dependency-free TypeScript library for binding keyboard shortcuts in the browser.",
+        "url": "https://bind-keyboard.gitlab.io/bind-keyboard/",
+        "codeRepository": "https://gitlab.com/bind-keyboard/bind-keyboard",
+        "programmingLanguage": "TypeScript",
+        "license": "https://opensource.org/licenses/MIT",
+        "downloadUrl": "https://www.npmjs.com/package/bind-keyboard"
+      }
+    </script>
   </head>
   <body>
     <header class="page-header">
       <div class="page-header-row">
         <h1>bind-keyboard</h1>
-        <a
-          class="npm-link"
-          href="https://www.npmjs.com/package/bind-keyboard"
-          target="_blank"
-          rel="noopener noreferrer"
-          >npm ↗</a
-        >
+        <div class="header-links">
+          <a
+            class="header-link"
+            href="https://www.npmjs.com/package/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >npm ↗</a
+          >
+          <a
+            class="header-link"
+            href="https://gitlab.com/bind-keyboard/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitLab ↗</a
+          >
+        </div>
       </div>
       <p class="subtitle">
-        Live demo — press any key combination to see it detected below.
+        A lightweight (~5KB gzip), dependency-free library for binding
+        keyboard shortcuts — layout-agnostic, cross-platform, and safe by
+        default.
       </p>
     </header>
 
     <main class="layout">
       <section class="keyboard-column">
+        <p class="demo-hint">
+          Press any key combination to see it detected below.
+        </p>
         <div id="keyboard" class="keyboard" aria-hidden="true"></div>
         <div class="combo-readout">
           <span class="combo-label">Detected combination</span>
@@ -93,6 +153,40 @@
         </div>
       </aside>
     </main>
+
+    <section class="features">
+      <h2>Features</h2>
+      <ul class="features-list">
+        <li>
+          <span class="feature-icon" aria-hidden="true">⌨️</span>
+          Bind callbacks to key combinations, including multiple per callback
+        </li>
+        <li>
+          <span class="feature-icon" aria-hidden="true">🌐</span>
+          Layout-agnostic matching via <code>event.code</code> — no need to
+          switch to a Latin layout
+        </li>
+        <li>
+          <span class="feature-icon" aria-hidden="true">⌘</span>
+          <code>cmdOrCtrl</code> — one binding, the right modifier on every
+          platform
+        </li>
+        <li>
+          <span class="feature-icon" aria-hidden="true">🛡️</span>
+          Input-safe by default — shortcuts skip text fields, with a
+          per-binding override
+        </li>
+        <li>
+          <span class="feature-icon" aria-hidden="true">🪶</span>
+          ~5KB gzipped, zero dependencies
+        </li>
+        <li>
+          <span class="feature-icon" aria-hidden="true">🖥️</span>
+          SSR-safe — skips autostart instead of throwing when there's no DOM
+          yet
+        </li>
+      </ul>
+    </section>
 
     <section class="code-sample">
       <div class="code-sample-header">

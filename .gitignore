@@ -10,7 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-public
+# Build output only (root-level) — NOT demo/public/, which holds tracked
+# static assets (robots.txt etc.) that Vite copies verbatim into that build
+# output.
+/public
 *.local
 .env
 coverage
