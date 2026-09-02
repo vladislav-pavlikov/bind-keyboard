@@ -451,6 +451,87 @@ kbd {
   flex: 0 0 auto;
 }
 
+.game-section {
+  max-width: 1100px;
+  margin: 24px auto 0;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.game-section h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.game-hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.game-hint kbd,
+.game-hint code {
+  font: 12px var(--mono);
+  color: var(--accent);
+}
+
+.game-arena {
+  position: relative;
+  height: 200px;
+  background: var(--bg);
+  border: 1px solid var(--key-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.game-character-position {
+  position: absolute;
+  left: 0;
+  bottom: 16px;
+  width: 32px;
+  height: 32px;
+  will-change: transform;
+}
+
+.game-character {
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 8px;
+  transition: box-shadow 120ms ease;
+}
+
+@keyframes character-jump {
+  0% {
+    transform: translateY(0);
+  }
+
+  45% {
+    transform: translateY(-56px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.game-character.jumping {
+  animation: character-jump 480ms ease-out;
+}
+
+.game-character.ducking {
+  transform: scaleY(0.55);
+  transform-origin: bottom;
+}
+
+.game-character.dashing {
+  box-shadow: 0 0 0 4px rgba(255, 138, 61, 0.35);
+}
+
 .code-sample {
   max-width: 1100px;
   margin: 24px auto 0;

@@ -3,6 +3,7 @@ import { currentIsMac, detectIsMac, renderKeyboard } from "./keyboard-view";
 import { createBindKeyboard, renderShortcuts } from "./bindings";
 import { renderInstallCommand } from "./install-command";
 import { renderCodeSample } from "./code-sample";
+import "./movement-game";
 
 let bindKeyboard = createBindKeyboard();
 
