@@ -22,6 +22,9 @@ export default defineConfig({
     // Runs after vite.config.ts's own build (see package.json's "build"
     // script) — must not wipe out what that already wrote to dist/.
     emptyOutDir: false,
+    // See the matching comment in vite.config.ts — terser measurably beats
+    // Vite's own default (oxc) for this entry's ESM output too.
+    minify: "terser",
     lib: {
       entry: resolve(import.meta.dirname, "src/react/index.ts"),
       name: "bindKeyboardReact",

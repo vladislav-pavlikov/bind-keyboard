@@ -23,6 +23,7 @@ test:
     - npm run build
     - npm run bundlesize
     - npm run check-exports
+    - npm run check-dist-behavior
     - npm run demo:build
 
 # GitLab Pages requires a job literally named "pages" that publishes a
