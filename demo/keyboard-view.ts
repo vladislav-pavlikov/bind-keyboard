@@ -112,11 +112,20 @@ const updateHighlighting = (): void => {
   }
 };
 
-// Caps Lock is a toggle, not a held modifier — the only reliable way to
-// read its current state is KeyboardEvent.getModifierState("CapsLock") on
-// an actual event, there's no way to query it up front. It stays at its
-// (inactive) default until the visitor's first keypress; nothing the page
-// can do about that.
+// Caps Lock is a toggle, not a held modifier, and its keydown/keyup pairing
+// isn't reliable across browsers/OSes the way every other key's is — e.g.
+// on some platforms only the keydown that turns it *on* actually fires, so
+// tracking it through the normal pressedCodes (momentary "is this key held
+// right now") mechanism used for every other key would leave it stuck
+// highlighted with no matching release. It's deliberately excluded from
+// pressedCodes entirely (see the keydown/keyup listeners below) — its own
+// key never gets the regular momentary .pressed highlight, and it never
+// shows up in the "Detected combination" readout either, since it isn't a
+// real modifier getKeyCombination knows about anyway. Its state is instead
+// read fresh, every time, via KeyboardEvent.getModifierState("CapsLock")
+// on an actual event — the one signal that's actually reliable, though
+// there's no way to query it up front, so it stays at its (inactive)
+// default until the visitor's first keypress.
 let capsLockActive = false;
 
 const applyCapsLockIndicator = (): void => {
@@ -287,17 +296,17 @@ const updateComboText = (ev: KeyboardEvent): void => {
 };
 
 document.addEventListener("keydown", (ev) => {
-  pressedCodes.add(ev.code);
+  updateCapsLockIndicator(ev);
+  if (ev.code !== "CapsLock") pressedCodes.add(ev.code);
   updateHighlighting();
   updateComboText(ev);
-  updateCapsLockIndicator(ev);
 });
 
 document.addEventListener("keyup", (ev) => {
-  pressedCodes.delete(ev.code);
+  updateCapsLockIndicator(ev);
+  if (ev.code !== "CapsLock") pressedCodes.delete(ev.code);
   updateHighlighting();
   updateComboText(ev);
-  updateCapsLockIndicator(ev);
 });
 
 // Avoid keys (or the readout) getting stuck mid-combo if focus leaves the
