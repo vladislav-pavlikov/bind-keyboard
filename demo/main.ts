@@ -308,6 +308,69 @@ const renderShortcuts = (bindKeyboard: BindKeyboard): void => {
   );
 };
 
+// --- Live code sample --------------------------------------------------------
+// Mirrors the currently selected keyMode/checkInputElements settings into a
+// copy-pasteable snippet, so the sample the viewer copies always matches what
+// they're actually seeing the demo do. "ctrl+k" is a neutral placeholder —
+// it isn't bound to anything real on this page, unlike the demo's own
+// bindings (whose effects, like ctrl+a's, aren't always obvious to copy).
+
+const codeSampleEl = getElement<HTMLElement>("#code-sample-text");
+const copyCodeButton = getElement<HTMLButtonElement>("#copy-code");
+
+const renderCodeSample = (): void => {
+  const keyMode = currentKeyMode();
+  const { checked: checkInputElements } = getElement<HTMLInputElement>(
+    "#check-input-elements-toggle",
+  );
+
+  codeSampleEl.textContent = [
+    `import BindKeyboard from "bind-keyboard";`,
+    ``,
+    `const bindKeyboard = new BindKeyboard({`,
+    `  keyMode: ${JSON.stringify(keyMode)},`,
+    `  checkInputElements: ${String(checkInputElements)},`,
+    `});`,
+    ``,
+    `bindKeyboard.add("ctrl+k", (event) => {`,
+    `  event.preventDefault();`,
+    `  // your code here`,
+    `});`,
+  ].join("\n");
+};
+
+const copyCodeSample = async (): Promise<void> => {
+  const { textContent: text } = codeSampleEl;
+  let feedback = "Copied!";
+
+  try {
+    // navigator.clipboard requires a secure context and isn't guaranteed to
+    // exist at runtime even though the DOM types say it always does — if
+    // it's missing, accessing .writeText below throws synchronously and
+    // falls through to the manual-selection fallback in the catch block.
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // Fallback for browsers/contexts without the Clipboard API: select the
+    // text so the viewer can copy it manually.
+    const range = document.createRange();
+    range.selectNodeContents(codeSampleEl);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    feedback = "Selected — press ⌘/Ctrl+C";
+  }
+
+  const { textContent: originalLabel } = copyCodeButton;
+  copyCodeButton.textContent = feedback;
+  setTimeout(() => {
+    copyCodeButton.textContent = originalLabel;
+  }, 1500);
+};
+
+copyCodeButton.addEventListener("click", () => {
+  void copyCodeSample();
+});
+
 const createBindKeyboard = (): BindKeyboard => {
   const bindKeyboard = new BindKeyboard({
     keyMode: currentKeyMode(),
@@ -327,6 +390,15 @@ let bindKeyboard = createBindKeyboard();
 const rebuildBindKeyboard = (): void => {
   bindKeyboard.destroy();
   bindKeyboard = createBindKeyboard();
+};
+
+// keyMode/checkInputElements both affect actual matching behavior, so
+// changing either must rebuild the BindKeyboard instance *and* refresh the
+// code sample that mirrors those settings (unlike the Layout toggle, which
+// only ever re-renders the keyboard — see the Wiring section below).
+const updateSettingsDependents = (): void => {
+  rebuildBindKeyboard();
+  renderCodeSample();
 };
 
 // --- Wiring ------------------------------------------------------------------
@@ -364,8 +436,9 @@ for (const button of getElement<HTMLElement>(
 const keyboardEl = getElement<HTMLElement>("#keyboard");
 
 renderKeyboard(keyboardEl, currentIsMac());
+renderCodeSample();
 
-wireSegmentedToggle("#keymode-toggle", rebuildBindKeyboard);
+wireSegmentedToggle("#keymode-toggle", updateSettingsDependents);
 
 wireSegmentedToggle("#layout-toggle", () => {
   renderKeyboard(keyboardEl, currentIsMac());
@@ -373,7 +446,7 @@ wireSegmentedToggle("#layout-toggle", () => {
 
 getElement<HTMLInputElement>("#check-input-elements-toggle").addEventListener(
   "change",
-  rebuildBindKeyboard,
+  updateSettingsDependents,
 );
 
 getElement<HTMLElement>("#overlay-close").addEventListener(
