@@ -45,6 +45,11 @@ class BindKeyboard {
     Types.KeyCombination | undefined
   >;
 
+  // The most recently pressed non-modifier key that's still held, if any —
+  // see #listener for why a bare modifier key's own event needs this to
+  // resolve combinations like "shift + d" reliably.
+  #heldKey: { key: string; code: string } | undefined = undefined;
+
   readonly #checkInputElements: boolean;
   readonly #keyMode: Types.KeyMode;
 
@@ -118,12 +123,75 @@ class BindKeyboard {
    *
    * @param {Event} ev - The keyboard event.
    */
+  /**
+   * Keeps #heldKey in sync with real (non-modifier) key presses/releases.
+   * Modifier keys are never tracked as a "held key" themselves — they're
+   * the thing that gets combined *with* one, not a base key.
+   *
+   * @param {KeyboardEvent} ev - The keyboard event.
+   * @param {Types.EventType} eventType - `ev.type`, narrowed.
+   * @param {boolean} isModifierEvent - Whether `ev.code` is a modifier key.
+   */
+  #trackHeldKey(
+    ev: KeyboardEvent,
+    eventType: Types.EventType,
+    isModifierEvent: boolean,
+  ): void {
+    if (isModifierEvent) return;
+
+    if (eventType === "keyup") {
+      if (this.#heldKey?.code === ev.code) this.#heldKey = undefined;
+    } else {
+      this.#heldKey = { key: ev.key, code: ev.code };
+    }
+  }
+
+  /**
+   * Resolves the combination this event represents. A bare modifier key's
+   * own event only carries information about itself — if some other,
+   * non-modifier key is already held (#heldKey), the *actual* current
+   * combination is that key plus this event's modifier flags (always
+   * live/correct, regardless of which key triggered the event), not
+   * whatever the modifier key's own key/code would produce alone. This is
+   * what lets holding "d" and then also pressing Shift resolve to
+   * "shift + d" the instant Shift goes down, instead of depending on the
+   * OS's next auto-repeat of "d" — which is both delayed and not reliably
+   * consistent across browsers about updating a repeating key's own
+   * modifier flags.
+   *
+   * @param {KeyboardEvent} ev - The keyboard event.
+   * @param {boolean} isModifierEvent - Whether `ev.code` is a modifier key.
+   * @returns {Types.KeyCombination} The resolved combination.
+   */
+  #resolveKeyCombination(
+    ev: KeyboardEvent,
+    isModifierEvent: boolean,
+  ): Types.KeyCombination {
+    const heldKey = isModifierEvent ? this.#heldKey : undefined;
+
+    return helpers.getKeyCombination(
+      {
+        ctrlKey: ev.ctrlKey,
+        shiftKey: ev.shiftKey,
+        altKey: ev.altKey,
+        metaKey: ev.metaKey,
+        key: heldKey?.key ?? ev.key,
+        code: heldKey?.code ?? ev.code,
+      },
+      this.#keyMode,
+    );
+  }
+
   readonly #listener = (ev: Event): void => {
     if (!(ev instanceof KeyboardEvent)) return;
 
-    const keyCombination = helpers.getKeyCombination(ev, this.#keyMode);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- #listener is only ever registered for keydown/keypress/keyup (see startListeners/stopListeners below), so ev.type is always a Types.EventType.
     const eventType = ev.type as Types.EventType;
+    const isModifierEvent = helpers.isModifierCode(ev.code);
+
+    this.#trackHeldKey(ev, eventType, isModifierEvent);
+
+    const keyCombination = this.#resolveKeyCombination(ev, isModifierEvent);
     const entry = this.#bindings[eventType].get(keyCombination);
 
     // Do not intercept key events when typing in input fields, unless this

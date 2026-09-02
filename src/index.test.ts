@@ -208,6 +208,89 @@ describe("Keybind Library Tests", () => {
     bindKeyboardCode.stopListeners();
   });
 
+  it("should fire a held key's new combination immediately on the modifier's own keydown, not only via that key's auto-repeat", () => {
+    // Real browsers aren't guaranteed to keep updating a repeating key's
+    // own modifier flags once another key is also pressed — this is the
+    // reliable path: the modifier key's own (fresh, non-repeat) keydown
+    // carries the correct combination on its own, using whatever
+    // non-modifier key is currently held.
+    const bindKeyboardCode = new BindKeyboard({ keyMode: "code" });
+    const move = jest.fn();
+    const dash = jest.fn();
+    bindKeyboardCode.add("d", move, true, "keydown");
+    bindKeyboardCode.add("shift+d", dash, true, "keydown");
+
+    dispatchEvent(
+      new KeyboardEvent("keydown", { code: "KeyD", key: "d", repeat: false }),
+    );
+    expect(move).toHaveBeenCalledTimes(1);
+
+    // Shift's own fresh keydown — no further "d" event involved at all.
+    dispatchEvent(
+      new KeyboardEvent("keydown", {
+        code: "ShiftLeft",
+        key: "Shift",
+        shiftKey: true,
+        repeat: false,
+      }),
+    );
+    expect(dash).toHaveBeenCalledTimes(1);
+
+    // Shift auto-repeating shouldn't re-dash.
+    dispatchEvent(
+      new KeyboardEvent("keydown", {
+        code: "ShiftLeft",
+        key: "Shift",
+        shiftKey: true,
+        repeat: true,
+      }),
+    );
+    expect(dash).toHaveBeenCalledTimes(1);
+
+    // Releasing Shift while "d" is still held, then re-pressing Shift,
+    // should dash again — the held key is still tracked correctly.
+    dispatchEvent(
+      new KeyboardEvent("keyup", {
+        code: "ShiftLeft",
+        key: "Shift",
+        shiftKey: false,
+      }),
+    );
+    dispatchEvent(
+      new KeyboardEvent("keydown", {
+        code: "ShiftLeft",
+        key: "Shift",
+        shiftKey: true,
+        repeat: false,
+      }),
+    );
+    expect(dash).toHaveBeenCalledTimes(2);
+
+    // Releasing "d" itself clears the held key — Shift alone afterward
+    // shouldn't still resolve to "shift + d".
+    dispatchEvent(
+      new KeyboardEvent("keyup", { code: "KeyD", key: "d", shiftKey: true }),
+    );
+    dispatchEvent(
+      new KeyboardEvent("keyup", {
+        code: "ShiftLeft",
+        key: "Shift",
+        shiftKey: false,
+      }),
+    );
+    dispatchEvent(
+      new KeyboardEvent("keydown", {
+        code: "ShiftLeft",
+        key: "Shift",
+        shiftKey: true,
+        repeat: false,
+      }),
+    );
+    expect(dash).toHaveBeenCalledTimes(2);
+
+    bindKeyboardCode.stopListeners();
+  });
+
   it('should resolve the "cmdOrCtrl" alias to ctrl on non-Mac and meta on Mac', () => {
     const { platform: originalPlatform } = navigator;
 
