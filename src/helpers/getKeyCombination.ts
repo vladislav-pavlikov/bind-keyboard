@@ -8,15 +8,42 @@ import type {
   KeyCombination,
 } from "../types";
 
-const normalizeKeyFromKey = (key?: string): string | undefined =>
-  key === " " ? "space" : key?.toLowerCase();
+// A lone modifier press (e.g. tapping Control by itself) sets its own
+// `ctrlKey`/etc. flag *and* carries itself as `event.key`/`event.code`
+// ("Control"/"ControlLeft"). Without this table, that base key would be
+// appended alongside the flag's own token instead of collapsing into it —
+// e.g. "ctrl + control" instead of plain "ctrl" — so a binding registered as
+// "ctrl" would never match a real standalone Ctrl keydown. Left/Right
+// variants collapse the same way the modifier flags themselves do (there's
+// only one `ctrlKey` boolean regardless of which side was pressed).
+const MODIFIER_ALIASES: Record<string, string> = {
+  control: "ctrl",
+  controlleft: "ctrl",
+  controlright: "ctrl",
+  shift: "shift",
+  shiftleft: "shift",
+  shiftright: "shift",
+  alt: "alt",
+  altleft: "alt",
+  altright: "alt",
+  meta: "meta",
+  metaleft: "meta",
+  metaright: "meta",
+};
+
+const normalizeKeyFromKey = (key?: string): string | undefined => {
+  if (key === " ") return "space";
+  const lower = key?.toLowerCase();
+  return lower === undefined ? undefined : (MODIFIER_ALIASES[lower] ?? lower);
+};
 
 const normalizeKeyFromCode = (code?: string): string | undefined => {
   if (!code) return undefined;
   if (/^Key[A-Z]$/u.test(code)) return code.slice(3).toLowerCase();
   if (/^Digit\d$/u.test(code)) return code.slice(5);
   if (code === "Space") return "space";
-  return code.toLowerCase();
+  const lower = code.toLowerCase();
+  return MODIFIER_ALIASES[lower] ?? lower;
 };
 
 /**

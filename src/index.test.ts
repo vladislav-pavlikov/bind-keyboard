@@ -139,6 +139,29 @@ describe("Keybind Library Tests", () => {
     bindKeyboardCode.stopListeners();
   });
 
+  it("should trigger a lone-modifier binding on a real standalone press of that modifier, in both keyMode key and code", () => {
+    for (const keyMode of ["key", "code"] as const) {
+      const bindKeyboard = new BindKeyboard({ keyMode });
+      const callback = jest.fn();
+      bindKeyboard.add("ctrl", callback, true, "keydown");
+
+      // A real standalone Ctrl press carries event.key === "Control" and
+      // event.code === "ControlLeft"/"ControlRight" alongside ctrlKey: true —
+      // both must collapse into plain "ctrl", not "ctrl + control"/
+      // "ctrl + controlleft", or this binding would never fire.
+      dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Control",
+          code: "ControlLeft",
+          ctrlKey: true,
+        }),
+      );
+
+      expect(callback).toHaveBeenCalled();
+      bindKeyboard.stopListeners();
+    }
+  });
+
   it("should bind the same callback to an array of key combinations", () => {
     const callback = jest.fn();
     const entries = bindKeyboard.add(["ctrl+a", "ctrl+b"], callback);
