@@ -30,7 +30,12 @@ const lettersToKeys = (letters: string): KeyDef[] =>
   // eslint-disable-next-line @typescript-eslint/no-misused-spread -- plain ASCII A-Z literals only, no risk of Unicode code-point/code-unit mismatch.
   [...letters].map((letter) => ({ code: `Key${letter}`, label: letter }));
 
-const KEYBOARD_ROWS: KeyDef[][] = [
+// Rows 1-5 never change between platforms — only the bottom modifier row
+// (and the Backspace/Enter labels below) differ, since only that row's key
+// *order* and *labels* differ between a real Mac and Windows/Linux keyboard.
+// The underlying `code` values are identical either way, so highlighting and
+// combo detection need no platform-specific handling at all.
+const getKeyboardRows = (isMac: boolean): KeyDef[][] => [
   [
     { code: "Escape", label: "Esc" },
     ...Array.from({ length: 12 }, (_, i) => ({
@@ -47,7 +52,11 @@ const KEYBOARD_ROWS: KeyDef[][] = [
     { code: "Digit0", label: "0" },
     { code: "Minus", label: "-" },
     { code: "Equal", label: "=" },
-    { code: "Backspace", label: "Backspace", width: "2" },
+    {
+      code: "Backspace",
+      label: isMac ? "Delete" : "Backspace",
+      width: "2",
+    },
   ],
   [
     { code: "Tab", label: "Tab", width: "1.5" },
@@ -61,7 +70,7 @@ const KEYBOARD_ROWS: KeyDef[][] = [
     ...lettersToKeys("ASDFGHJKL"),
     { code: "Semicolon", label: ";" },
     { code: "Quote", label: "'" },
-    { code: "Enter", label: "Enter", width: "2" },
+    { code: "Enter", label: isMac ? "Return" : "Enter", width: "2" },
   ],
   [
     { code: "ShiftLeft", label: "Shift", width: "2" },
@@ -71,21 +80,57 @@ const KEYBOARD_ROWS: KeyDef[][] = [
     { code: "Slash", label: "/" },
     { code: "ShiftRight", label: "Shift", width: "2" },
   ],
-  [
-    { code: "ControlLeft", label: "Ctrl", width: "1.5" },
-    { code: "MetaLeft", label: "Meta" },
-    { code: "AltLeft", label: "Alt" },
-    { code: "Space", label: "", width: "space" },
-    { code: "AltRight", label: "Alt" },
-    { code: "MetaRight", label: "Meta" },
-    { code: "ControlRight", label: "Ctrl", width: "1.5" },
-  ],
+  isMac
+    ? [
+        { code: "ControlLeft", label: "control", width: "1.5" },
+        { code: "AltLeft", label: "⌥" },
+        { code: "MetaLeft", label: "⌘" },
+        { code: "Space", label: "", width: "space" },
+        { code: "MetaRight", label: "⌘" },
+        { code: "AltRight", label: "⌥" },
+        { code: "ControlRight", label: "control", width: "1.5" },
+      ]
+    : [
+        { code: "ControlLeft", label: "Ctrl", width: "1.5" },
+        { code: "MetaLeft", label: "Win" },
+        { code: "AltLeft", label: "Alt" },
+        { code: "Space", label: "", width: "space" },
+        { code: "AltRight", label: "Alt" },
+        { code: "MetaRight", label: "Win" },
+        { code: "ControlRight", label: "Ctrl", width: "1.5" },
+      ],
 ];
 
+// Low-entropy User-Agent Client Hint where available (Chromium), falling
+// back to the older, deprecated-but-universally-supported navigator.platform
+// (Safari, Firefox) — this only ever seeds the initial toggle state, the
+// user can always override it manually.
+const detectIsMac = (): boolean => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- userAgentData is an experimental Chromium-only API not present in lib.dom.d.ts; this is the standard feature-detection shape, guarded entirely by optional chaining below.
+  const { userAgentData } = navigator as {
+    userAgentData?: { platform?: string };
+  };
+  const platform = userAgentData?.platform ?? navigator.platform;
+  return /mac|iphone|ipad/iu.test(platform);
+};
+
+// --- Live combo readout + highlighting -------------------------------------
+
+const comboTextEl = getElement<HTMLElement>("#combo-text");
+const pressedCodes = new Set<string>();
 const keyElementsByCode = new Map<string, HTMLElement>();
 
-const renderKeyboard = (container: HTMLElement): void => {
-  for (const row of KEYBOARD_ROWS) {
+const updateHighlighting = (): void => {
+  for (const [code, el] of keyElementsByCode) {
+    el.classList.toggle("pressed", pressedCodes.has(code));
+  }
+};
+
+const renderKeyboard = (container: HTMLElement, isMac: boolean): void => {
+  container.replaceChildren();
+  keyElementsByCode.clear();
+
+  for (const row of getKeyboardRows(isMac)) {
     const rowEl = document.createElement("div");
     rowEl.className = "kb-row";
 
@@ -100,17 +145,8 @@ const renderKeyboard = (container: HTMLElement): void => {
 
     container.appendChild(rowEl);
   }
-};
 
-// --- Live combo readout + highlighting -------------------------------------
-
-const comboTextEl = getElement<HTMLElement>("#combo-text");
-const pressedCodes = new Set<string>();
-
-const updateHighlighting = (): void => {
-  for (const [code, el] of keyElementsByCode) {
-    el.classList.toggle("pressed", pressedCodes.has(code));
-  }
+  updateHighlighting();
 };
 
 const KEY_MODES: readonly KeyMode[] = ["key", "code"];
@@ -296,18 +332,42 @@ const rebuildBindKeyboard = (): void => {
 
 // --- Wiring ------------------------------------------------------------------
 
-renderKeyboard(getElement<HTMLElement>("#keyboard"));
+const wireSegmentedToggle = (selector: string, onChange: () => void): void => {
+  getElement<HTMLElement>(selector).addEventListener("click", (ev) => {
+    if (!(ev.target instanceof HTMLElement)) return;
+    const button = ev.target.closest("button");
+    if (!button?.parentElement) return;
 
-getElement<HTMLElement>("#keymode-toggle").addEventListener("click", (ev) => {
-  if (!(ev.target instanceof HTMLElement)) return;
-  const button = ev.target.closest("button");
-  if (!button?.parentElement) return;
+    for (const sibling of button.parentElement.children) {
+      sibling.classList.toggle("active", sibling === button);
+    }
 
-  for (const sibling of button.parentElement.children) {
-    sibling.classList.toggle("active", sibling === button);
-  }
+    onChange();
+  });
+};
 
-  rebuildBindKeyboard();
+const currentIsMac = (): boolean =>
+  getElement<HTMLButtonElement>("#layout-toggle .active").dataset.value ===
+  "mac";
+
+// index.html hardcodes "mac" as the default-active button in the layout
+// toggle (a reasonable static fallback) — seed it from platform detection
+// before the first paint that matters, since this script runs synchronously.
+for (const button of getElement<HTMLElement>(
+  "#layout-toggle",
+).querySelectorAll<HTMLButtonElement>("button")) {
+  button.classList.toggle(
+    "active",
+    button.dataset.value === (detectIsMac() ? "mac" : "win"),
+  );
+}
+
+renderKeyboard(getElement<HTMLElement>("#keyboard"), currentIsMac());
+
+wireSegmentedToggle("#keymode-toggle", rebuildBindKeyboard);
+
+wireSegmentedToggle("#layout-toggle", () => {
+  renderKeyboard(getElement<HTMLElement>("#keyboard"), currentIsMac());
 });
 
 getElement<HTMLInputElement>("#check-input-elements-toggle").addEventListener(
