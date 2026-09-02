@@ -291,6 +291,39 @@ describe("Keybind Library Tests", () => {
     bindKeyboardCode.stopListeners();
   });
 
+  it('should fire a "keyup" binding for a held key on release even while an unrelated modifier is also still held', () => {
+    // A common continuous-movement pattern: "d" held to move, paired with a
+    // "shift+d" keydown dash *while still holding d*. Releasing "d" first
+    // (dash then release, without releasing Shift first) carries
+    // shiftKey: true on that very keyup — if keyup required an exact
+    // modifier match, a plain "d" keyup binding would never fire in that
+    // case, leaving whatever state it was supposed to reset (e.g. "is d
+    // held") stuck.
+    const bindKeyboardCode = new BindKeyboard({ keyMode: "code" });
+    const startMoving = jest.fn();
+    const stopMoving = jest.fn();
+    bindKeyboardCode.add("d", startMoving, true, "keydown");
+    bindKeyboardCode.add("d", stopMoving, true, "keyup");
+
+    dispatchEvent(
+      new KeyboardEvent("keydown", { code: "KeyD", key: "d", repeat: false }),
+    );
+    expect(startMoving).toHaveBeenCalledTimes(1);
+
+    // Release "d" while Shift is (for whatever reason) also currently held.
+    dispatchEvent(
+      new KeyboardEvent("keyup", {
+        code: "KeyD",
+        key: "d",
+        shiftKey: true,
+      }),
+    );
+
+    expect(stopMoving).toHaveBeenCalledTimes(1);
+
+    bindKeyboardCode.stopListeners();
+  });
+
   it('should resolve the "cmdOrCtrl" alias to ctrl on non-Mac and meta on Mac', () => {
     const { platform: originalPlatform } = navigator;
 

@@ -214,6 +214,21 @@ const updateComboText = (ev: KeyboardEvent): void => {
     heldKey = undefined;
   }
 
+  // pressedCodes can drift from reality — e.g. a keyup gets missed around a
+  // focus change, or (now that the page also has a second, independent
+  // BindKeyboard instance for the bonus game) some interleaving of events
+  // this tracking didn't anticipate. If that leaves no held base key and
+  // no active modifier even though pressedCodes is non-empty, there's
+  // nothing real to show — and passing all of that as-is to
+  // getKeyCombination would throw. Self-heal: whatever's left in
+  // pressedCodes at that point isn't valid either, so clear it too.
+  if (!ev.ctrlKey && !ev.shiftKey && !ev.altKey && !ev.metaKey && !heldKey) {
+    pressedCodes.clear();
+    updateHighlighting();
+    comboTextEl.textContent = "—";
+    return;
+  }
+
   const keyCombination = BindKeyboard.getKeyCombination(
     {
       ctrlKey: ev.ctrlKey,

@@ -89,6 +89,8 @@ bindKeyboard.add("ctrl+z", undo, true, "keydown", {
 
 Throws `KeybindError` for an invalid `type`, or when `override: false` and a binding already exists for that combination (see [Errors and types](#errors-and-types) below).
 
+`type: "keyup"` ignores `ctrlKey`/`shiftKey`/`altKey`/`metaKey` (and `cmdOrCtrl`) entirely — `add("d", cb, true, "keyup")` fires on releasing "d" no matter what other modifiers happen to still be held at that instant. This is what makes continuous-hold tracking (`.add("d", () => (held = true), true, "keydown"); .add("d", () => (held = false), true, "keyup")`) reliable even while also using a modifier-based binding on the same key (e.g. a `"shift+d"` dash while still holding `"d"` to move) — a release is a release, regardless of what else is held. `"keydown"`/`"keypress"` are unaffected by this — modifiers still fully matter there.
+
 ### `.remove(keyCombination, type = "keypress")`
 
 Removes a single binding. Returns `true` if a binding was found and removed.

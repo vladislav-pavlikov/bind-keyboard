@@ -46,31 +46,50 @@ const normalizeKeyFromCode = (code?: string): string | undefined => {
   return MODIFIER_ALIASES[lower] ?? lower;
 };
 
+// Reduces ctrlKey/shiftKey/altKey/metaKey to what should actually count
+// toward this combination — all `false` when `ignoreModifiers` (used for
+// "keyup", see getKeyCombination below), otherwise passed through as-is.
+const resolveEffectiveModifiers = (
+  { ctrlKey, shiftKey, altKey, metaKey }: KeyCombinationConstruct,
+  ignoreModifiers: boolean,
+): [ctrl: boolean, shift: boolean, alt: boolean, meta: boolean] =>
+  ignoreModifiers
+    ? [false, false, false, false]
+    : [Boolean(ctrlKey), Boolean(shiftKey), Boolean(altKey), Boolean(metaKey)];
+
 /**
  * Gets a standardized key combination from a KeyCombinationConstruct.
  *
  * @param {KeyCombinationConstruct} param - The object containing key combination properties.
  * @param {KeyMode} [mode='key'] - Which KeyboardEvent property to read the base key from: "key" uses `event.key` (layout-sensitive), "code" uses `event.code` (physical key position, layout-agnostic).
+ * @param {boolean} [ignoreModifiers=false] - When true, ctrlKey/shiftKey/altKey/metaKey are treated as unset — used for "keyup" bindings, where whatever else happens to still be held at release time usually isn't the point (see BindKeyboard#resolveKeyCombination).
  * @returns {KeyCombination} The standardized key combination.
  */
 const getKeyCombination = (
-  { ctrlKey, shiftKey, altKey, metaKey, key, code }: KeyCombinationConstruct,
+  construct: KeyCombinationConstruct,
   mode: KeyMode = "key",
+  ignoreModifiers = false,
 ): KeyCombination => {
-  if (!ctrlKey && !shiftKey && !altKey && !metaKey && !key && !code) {
+  const { key, code } = construct;
+  const [ctrl, shift, alt, meta] = resolveEffectiveModifiers(
+    construct,
+    ignoreModifiers,
+  );
+
+  if (!ctrl && !shift && !alt && !meta && !key && !code) {
     throw new KeybindError("At least one key or modifier must be provided.");
   }
+
   const normalizedKey =
     mode === "code" ? normalizeKeyFromCode(code) : undefined;
-
   const keyToken = normalizedKey ?? normalizeKeyFromKey(key);
 
   return uniq(
     compact([
-      ctrlKey && "ctrl",
-      shiftKey && "shift",
-      altKey && "alt",
-      metaKey && "meta",
+      ctrl && "ctrl",
+      shift && "shift",
+      alt && "alt",
+      meta && "meta",
       keyToken,
     ]),
   ).join(" + ");

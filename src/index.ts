@@ -165,10 +165,21 @@ class BindKeyboard {
    */
   #resolveKeyCombination(
     ev: KeyboardEvent,
+    eventType: Types.EventType,
     isModifierEvent: boolean,
   ): Types.KeyCombination {
-    const heldKey = isModifierEvent ? this.#heldKey : undefined;
+    // The held-key substitution above is a keydown/keypress concern (a new
+    // combination *forming*) — it must not also apply to a modifier's own
+    // keyup, or releasing e.g. Shift while "d" is held would resolve to
+    // "d" and could trigger a binding meant for releasing "d" itself.
+    const heldKey =
+      isModifierEvent && eventType !== "keyup" ? this.#heldKey : undefined;
 
+    // "keyup" ignores modifier flags entirely: what else happens to still
+    // be held at the moment a key is released isn't usually the point —
+    // releasing "d" should reliably fire a "d" keyup binding whether or
+    // not Shift is also currently held (e.g. mid-dash), the same way it
+    // would if nothing else were held at all.
     return helpers.getKeyCombination(
       {
         ctrlKey: ev.ctrlKey,
@@ -179,6 +190,7 @@ class BindKeyboard {
         code: heldKey?.code ?? ev.code,
       },
       this.#keyMode,
+      eventType === "keyup",
     );
   }
 
@@ -191,7 +203,11 @@ class BindKeyboard {
 
     this.#trackHeldKey(ev, eventType, isModifierEvent);
 
-    const keyCombination = this.#resolveKeyCombination(ev, isModifierEvent);
+    const keyCombination = this.#resolveKeyCombination(
+      ev,
+      eventType,
+      isModifierEvent,
+    );
     const entry = this.#bindings[eventType].get(keyCombination);
 
     // Do not intercept key events when typing in input fields, unless this
@@ -246,7 +262,9 @@ class BindKeyboard {
     keyCombination: Types.KeyCombination | Types.KeyCombinationConstruct,
     type: Types.EventType = "keypress",
   ): Classes.KeybindEntry | undefined =>
-    this.#bindings[type].get(helpers.keyParser(keyCombination, this.#keyMode));
+    this.#bindings[type].get(
+      helpers.keyParser(keyCombination, this.#keyMode, type === "keyup"),
+    );
 
   /**
    * Gets an array of all key bindings across all event types.
@@ -289,7 +307,7 @@ class BindKeyboard {
       : [keyCombination];
     const { [type]: bindingsForType } = this.#bindings;
     const parsedCombinations = combinations.map((combination) =>
-      helpers.keyParser(combination, this.#keyMode),
+      helpers.keyParser(combination, this.#keyMode, type === "keyup"),
     );
 
     if (options.override === false) {
@@ -362,7 +380,7 @@ class BindKeyboard {
       throw new Classes.KeybindError("Wrong EventType.");
     }
     return this.#bindings[type].delete(
-      helpers.keyParser(keyCombination, this.#keyMode),
+      helpers.keyParser(keyCombination, this.#keyMode, type === "keyup"),
     );
   };
 

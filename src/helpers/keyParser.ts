@@ -43,11 +43,13 @@ const guessCodeFromKey = (key?: string): string | undefined => {
  *
  * @param {KeyCombination | KeyCombinationConstruct} keyCombination - The key combination to parse. A string form may use "cmdOrCtrl" as a platform-neutral modifier that resolves to metaKey on Mac or ctrlKey elsewhere (e.g. "cmdOrCtrl+a").
  * @param {KeyMode} [mode='key'] - Key matching mode: 'key' uses event.key, 'code' uses event.code (layout-agnostic).
+ * @param {boolean} [ignoreModifiers=false] - When true, any ctrl/shift/alt/meta/cmdOrCtrl tokens (or construct properties) are ignored — used for "keyup" bindings. See getKeyCombination.
  * @returns {KeyCombination} The standardized key combination.
  */
 const keyParser = (
   keyCombination: KeyCombination | KeyCombinationConstruct,
   mode: KeyMode = "key",
+  ignoreModifiers = false,
 ): KeyCombination => {
   if (isString(keyCombination)) {
     const p = compact(
@@ -73,10 +75,11 @@ const keyParser = (
         code: guessCodeFromKey(key),
       },
       mode,
+      ignoreModifiers,
     );
   }
 
-  return getKeyCombination(keyCombination, mode);
+  return getKeyCombination(keyCombination, mode, ignoreModifiers);
 };
 
 export default keyParser;
