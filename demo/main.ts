@@ -375,7 +375,10 @@ const renderShortcutsInto = (
     item.dataset.combination = keyCombination;
 
     const combo = document.createElement("kbd");
-    combo.textContent = keyCombination;
+    combo.textContent = formatKeyCombinationForDisplay(
+      keyCombination,
+      currentIsMac(),
+    );
 
     const description = document.createElement("span");
     description.textContent = entryDescription ?? "";
@@ -571,6 +574,10 @@ wireSegmentedToggle("#keymode-toggle", updateSettingsDependents);
 
 wireSegmentedToggle("#layout-toggle", () => {
   renderKeyboard(keyboardEl, currentIsMac());
+  // The shortcuts list's ⌘/⌥ vs win/alt display also depends on the layout,
+  // even though this toggle never touches the underlying BindKeyboard
+  // instance or its actual (unchanged) keyCombination strings.
+  renderShortcuts(bindKeyboard);
 });
 
 wireSegmentedToggle("#install-toggle", renderInstallCommand);
