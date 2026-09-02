@@ -1,7 +1,7 @@
 import type * as Types from "./types";
 import * as Classes from "./classes";
 import * as helpers from "./helpers";
-import { isBoolean } from "lodash";
+import isBoolean from "lodash/isBoolean";
 
 /**
  * Manages keyboard event bindings and execution of callback functions for specific key combinations.
