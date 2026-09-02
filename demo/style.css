@@ -101,6 +101,14 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  /* Grid items don't shrink below their content's min-content size by
+     default — .keyboard's ~740px min-content (its widest row) was forcing
+     .layout's grid track wider than its own container, pushing real
+     content past the edge of the viewport/body, not just failing to fit
+     inside .keyboard's own overflow-x: auto (which never got the chance to
+     kick in, since the track never actually shrank). min-width: 0 opts
+     this grid item back into normal shrinking. */
+  min-width: 0;
 }
 
 .demo-hint {
@@ -215,6 +223,10 @@ body {
   background: var(--panel);
   padding: 20px;
   border-radius: 12px;
+  /* Same grid-blowout guard as .keyboard-column, defensively — nothing in
+     here currently has a large min-content width, but this is the kind of
+     bug that's easy to reintroduce without noticing. */
+  min-width: 0;
 }
 
 .control {
