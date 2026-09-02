@@ -355,6 +355,13 @@ class BindKeyboard {
    * — any sequence-relevant event pushes it back by #sequenceTimeout, and
    * it clears every sequence's progress once it fires.
    *
+   * OS auto-repeats of a held key are ignored entirely (not just as a
+   * "no match" that would reset progress) — otherwise simply holding a
+   * key a little too long could complete a sequence on its own, most
+   * obviously a same-key one like "g,g": the second, third, etc. repeat
+   * of that single physical press would each independently "match" the
+   * next expected step.
+   *
    * @param {KeyboardEvent} ev - The keyboard event.
    * @param {Types.EventType} eventType - `ev.type`, narrowed.
    * @param {boolean} isModifierEvent - Whether `ev.code` is a modifier key.
@@ -367,7 +374,7 @@ class BindKeyboard {
     keyCombination: Types.KeyCombination,
   ): void {
     const { [eventType]: sequencesForType } = this.#sequences;
-    if (sequencesForType.size === 0) return;
+    if (sequencesForType.size === 0 || ev.repeat) return;
 
     clearTimeout(this.#sequenceTimer);
     this.#sequenceTimer = setTimeout(() => {

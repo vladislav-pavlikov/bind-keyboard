@@ -644,6 +644,35 @@ describe("Keybind Library Tests", () => {
     sequenced.destroy();
   });
 
+  it("should not let a held key's own auto-repeat complete a same-key sequence", () => {
+    const sequenced = new BindKeyboard();
+    const callback = jest.fn();
+    sequenced.add("g,g", callback, true, "keydown");
+
+    // A single physical press held down: one real keydown, then the OS
+    // auto-repeating that same key — must not be mistaken for "g" pressed
+    // twice in a row.
+    dispatchEvent(
+      new KeyboardEvent("keydown", { key: "g", code: "KeyG", repeat: false }),
+    );
+    dispatchEvent(
+      new KeyboardEvent("keydown", { key: "g", code: "KeyG", repeat: true }),
+    );
+    dispatchEvent(
+      new KeyboardEvent("keydown", { key: "g", code: "KeyG", repeat: true }),
+    );
+    expect(callback).not.toHaveBeenCalled();
+
+    // Release and press it again for real — now it completes.
+    dispatchEvent(new KeyboardEvent("keyup", { key: "g", code: "KeyG" }));
+    dispatchEvent(
+      new KeyboardEvent("keydown", { key: "g", code: "KeyG", repeat: false }),
+    );
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    sequenced.destroy();
+  });
+
   it("should not treat a literal comma key as a sequence separator", () => {
     const commaBound = new BindKeyboard({ keyMode: "code" });
     const callback = jest.fn();
