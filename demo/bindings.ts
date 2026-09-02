@@ -52,6 +52,30 @@ const flashShortcut = (keyCombination: string): void => {
   }
 };
 
+// A scoped binding is the *only* one that runs while its scope is active
+// (see BindKeyboard#resolveEntry) — while "keyboard" is suspended (a popup
+// open), nothing registered for that combination fires at all, including
+// a scoped callback's own ev.preventDefault(). Without this, opening a
+// popup would let the browser's own Cmd+A ("Select All" on the page) or
+// Cmd+/ take over again — worse than doing nothing. This unscoped
+// companion fires *instead of* the scoped one exactly when "keyboard"
+// isn't active (an active scope's own entry always wins over an unscoped
+// one for the same combination — see the README's Scopes section), so
+// between the two, preventDefault always happens either way.
+const preventBrowserDefaultWhileSuspended = (
+  bindKeyboard: BindKeyboard,
+  combo: string,
+): void => {
+  bindKeyboard.add(
+    combo,
+    (ev) => {
+      ev.preventDefault();
+    },
+    true,
+    "keydown",
+  );
+};
+
 const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
   // "cmdOrCtrl" resolves to Cmd on Mac / Ctrl elsewhere, so these three
   // match each platform's own native muscle memory (Cmd+A really is Select
@@ -75,6 +99,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     "keydown",
     { description: "Select all", scope: "keyboard" },
   );
+  preventBrowserDefaultWhileSuspended(bindKeyboard, "cmdOrCtrl+a");
 
   const [undo] = bindKeyboard.add(
     "cmdOrCtrl+z",
@@ -97,6 +122,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     "keydown",
     { description: "Toggle theme", scope: "keyboard" },
   );
+  preventBrowserDefaultWhileSuspended(bindKeyboard, "cmdOrCtrl+/");
 
   const [closeShortcut] = bindKeyboard.add(
     "escape",
