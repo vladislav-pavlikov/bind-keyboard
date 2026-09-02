@@ -459,8 +459,15 @@ kbd {
   padding: 20px 24px;
 }
 
-.game-section h2 {
-  margin: 0 0 8px;
+.game-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.game-section-header h2 {
+  margin: 0;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;

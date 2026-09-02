@@ -1,5 +1,6 @@
 import BindKeyboard from "../src";
 import { getElement } from "./dom";
+import { renderShortcutsInto } from "./shortcuts-list";
 
 // --- Bonus movement demo -----------------------------------------------------
 // Everything here runs on its own, separate BindKeyboard instance:
@@ -74,6 +75,10 @@ const bindKeyboard = new BindKeyboard({
   checkInputElements: true,
 });
 
+// Descriptions are only set on the "keydown" side of each pair — the
+// "keyup" companions are just internal bookkeeping (resetting a held-key
+// flag), not something worth showing in the "Bindings" popup below.
+// renderShortcutsInto already skips entries with no description.
 bindKeyboard.add(
   "a",
   () => {
@@ -81,6 +86,7 @@ bindKeyboard.add(
   },
   true,
   "keydown",
+  { description: "Move left" },
 );
 bindKeyboard.add(
   "a",
@@ -97,6 +103,7 @@ bindKeyboard.add(
   },
   true,
   "keydown",
+  { description: "Move right" },
 );
 bindKeyboard.add(
   "d",
@@ -114,6 +121,7 @@ bindKeyboard.add(
   },
   true,
   "keydown",
+  { description: "Duck" },
 );
 bindKeyboard.add(
   "s",
@@ -134,6 +142,7 @@ bindKeyboard.add(
   },
   true,
   "keydown",
+  { description: "Jump" },
 );
 
 bindKeyboard.add(
@@ -143,6 +152,7 @@ bindKeyboard.add(
   },
   true,
   "keydown",
+  { description: "Dash right" },
 );
 bindKeyboard.add(
   "shift+a",
@@ -151,6 +161,7 @@ bindKeyboard.add(
   },
   true,
   "keydown",
+  { description: "Dash left" },
 );
 
 const tick = (): void => {
@@ -175,3 +186,32 @@ window.addEventListener("resize", () => {
 x = clampX((arenaEl.clientWidth - CHARACTER_WIDTH) / 2);
 setPosition();
 requestAnimationFrame(tick);
+
+// --- Bindings popup ----------------------------------------------------------
+// Same "?" overlay pattern as the main demo above, but scoped to this
+// instance's own bindings and opened by a click instead of a key — "?" is
+// already taken by the main demo's own overlay, and this page already has
+// two independent BindKeyboard instances quietly listening at once; a third
+// meaning for the same key isn't worth the confusion for a bonus feature.
+
+const gameOverlayEl = getElement<HTMLElement>("#game-shortcuts-overlay");
+
+renderShortcutsInto(
+  getElement<HTMLElement>("#game-shortcuts-list"),
+  bindKeyboard,
+);
+
+getElement<HTMLElement>("#game-bindings-button").addEventListener(
+  "click",
+  () => {
+    gameOverlayEl.hidden = false;
+  },
+);
+
+getElement<HTMLElement>("#game-overlay-close").addEventListener("click", () => {
+  gameOverlayEl.hidden = true;
+});
+
+gameOverlayEl.addEventListener("click", (ev) => {
+  if (ev.target === gameOverlayEl) gameOverlayEl.hidden = true;
+});

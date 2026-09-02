@@ -206,7 +206,12 @@
     </section>
 
     <section class="game-section">
-      <h2>Bonus: hold some keys</h2>
+      <div class="game-section-header">
+        <h2>Bonus: hold some keys</h2>
+        <button type="button" id="game-bindings-button" class="copy-button">
+          Bindings
+        </button>
+      </div>
       <p class="game-hint">
         <kbd>A</kbd>/<kbd>D</kbd> to move, <kbd>Space</kbd>/<kbd>W</kbd> to
         jump, <kbd>S</kbd> to duck, <kbd>Shift</kbd>+<kbd>D</kbd> (or
@@ -278,6 +283,21 @@
         <ul id="overlay-shortcuts-list" class="shortcuts-list"></ul>
         <p class="overlay-hint">
           Built live from <code>getAllBindings()</code>.
+        </p>
+      </div>
+    </div>
+
+    <div id="game-shortcuts-overlay" class="overlay" hidden>
+      <div class="overlay-panel">
+        <div class="overlay-header">
+          <h2>Game bindings</h2>
+          <button type="button" id="game-overlay-close" aria-label="Close">
+            &times;
+          </button>
+        </div>
+        <ul id="game-shortcuts-list" class="shortcuts-list"></ul>
+        <p class="overlay-hint">
+          Built live from the bonus game's own <code>getAllBindings()</code>.
         </p>
       </div>
     </div>

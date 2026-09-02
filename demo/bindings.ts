@@ -1,10 +1,7 @@
 import BindKeyboard from "../src";
 import { getElement } from "./dom";
-import {
-  currentIsMac,
-  currentKeyMode,
-  formatKeyCombinationForDisplay,
-} from "./keyboard-view";
+import { currentKeyMode } from "./keyboard-view";
+import { renderShortcutsInto } from "./shortcuts-list";
 
 // --- Demo bindings + BindKeyboard instance ----------------------------------
 
@@ -111,33 +108,6 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     "keydown",
     { description: "Show all shortcuts" },
   );
-};
-
-const renderShortcutsInto = (
-  listEl: HTMLElement,
-  bindKeyboard: BindKeyboard,
-): void => {
-  listEl.replaceChildren();
-
-  for (const {
-    keyCombination,
-    description: entryDescription,
-  } of bindKeyboard.getAllBindings()) {
-    const item = document.createElement("li");
-    item.dataset.combination = keyCombination;
-
-    const combo = document.createElement("kbd");
-    combo.textContent = formatKeyCombinationForDisplay(
-      keyCombination,
-      currentIsMac(),
-    );
-
-    const description = document.createElement("span");
-    description.textContent = entryDescription ?? "";
-
-    item.append(combo, description);
-    listEl.appendChild(item);
-  }
 };
 
 export const renderShortcuts = (bindKeyboard: BindKeyboard): void => {
