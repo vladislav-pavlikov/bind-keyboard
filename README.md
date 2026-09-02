@@ -8,7 +8,7 @@
 
 `bind-keyboard` is a lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations. It's designed to simplify handling keyboard events in your web applications.
 
-**[Live demo →](https://bind-keyboard.gitlab.io/bind-keyboard/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements` and a live shortcuts panel.
+**[Live demo →](https://bind-keyboard.gitlab.io/bind-keyboard/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements`, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
 
 ## Features
 
