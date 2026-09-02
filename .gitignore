@@ -14,6 +14,10 @@ dist-ssr
 # static assets (robots.txt etc.) that Vite copies verbatim into that build
 # output.
 /public
+# The one exception within demo/public/ itself: generated from README.md by
+# scripts/generate-llms-full.mjs on every demo build, so it's never
+# hand-edited and would only ever go stale if committed.
+demo/public/llms-full.txt
 *.local
 .env
 coverage

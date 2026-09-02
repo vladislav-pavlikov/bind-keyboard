@@ -3,16 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bind-keyboard — Keyboard Shortcut Library for JavaScript & TypeScript</title>
+    <title>
+      bind-keyboard — Keyboard Shortcut Library for JavaScript & TypeScript
+    </title>
     <meta
       name="description"
       content="A lightweight (~5KB gzip), dependency-free TypeScript library for binding keyboard shortcuts in the browser — layout-agnostic matching, a cross-platform cmdOrCtrl modifier, and input-safe by default."
     />
-    <link rel="canonical" href="https://bind-keyboard.gitlab.io/bind-keyboard/" />
+    <link
+      rel="canonical"
+      href="https://bind-keyboard.gitlab.io/bind-keyboard/"
+    />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="bind-keyboard" />
-    <meta property="og:url" content="https://bind-keyboard.gitlab.io/bind-keyboard/" />
+    <meta
+      property="og:url"
+      content="https://bind-keyboard.gitlab.io/bind-keyboard/"
+    />
     <meta
       property="og:title"
       content="bind-keyboard — Keyboard Shortcut Library for JavaScript & TypeScript"
@@ -41,14 +49,93 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareSourceCode",
-        "name": "bind-keyboard",
-        "description": "A lightweight, dependency-free TypeScript library for binding keyboard shortcuts in the browser.",
-        "url": "https://bind-keyboard.gitlab.io/bind-keyboard/",
-        "codeRepository": "https://gitlab.com/bind-keyboard/bind-keyboard",
-        "programmingLanguage": "TypeScript",
-        "license": "https://opensource.org/licenses/MIT",
-        "downloadUrl": "https://www.npmjs.com/package/bind-keyboard"
+        "@graph": [
+          {
+            "@type": "SoftwareSourceCode",
+            "name": "bind-keyboard",
+            "description": "A lightweight (~5KB gzip), dependency-free TypeScript library for binding keyboard shortcuts in the browser — layout-agnostic matching, a cross-platform cmdOrCtrl modifier, and input-safe by default.",
+            "url": "https://bind-keyboard.gitlab.io/bind-keyboard/",
+            "codeRepository": "https://gitlab.com/bind-keyboard/bind-keyboard",
+            "programmingLanguage": "TypeScript",
+            "license": "https://opensource.org/licenses/MIT",
+            "downloadUrl": "https://www.npmjs.com/package/bind-keyboard",
+            "softwareVersion": "1.0.0",
+            "keywords": "keyboard, keybinding, key events, keyboard shortcuts, keyboard events, event handling, key combination, javascript, typescript",
+            "author": {
+              "@type": "Person",
+              "name": "Vladislav Pavlikov",
+              "url": "https://gitlab.com/pavlikov.deal"
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "bind-keyboard",
+            "description": "A lightweight (~5KB gzip), dependency-free TypeScript library for binding keyboard shortcuts in the browser — layout-agnostic matching, a cross-platform cmdOrCtrl modifier, and input-safe by default.",
+            "url": "https://bind-keyboard.gitlab.io/bind-keyboard/",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Any",
+            "softwareVersion": "1.0.0",
+            "downloadUrl": "https://www.npmjs.com/package/bind-keyboard",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "How do I use bind-keyboard in React, Vue, or Svelte?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Create a BindKeyboard instance when your component mounts (useEffect in React, onMounted in Vue, onMount in Svelte) and call bindKeyboard.destroy() on unmount to remove its listeners. The demo's \"Try it in your code\" section has a copy-pasteable example for each framework, in both TypeScript and JavaScript."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does bind-keyboard support non-QWERTY keyboard layouts?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Setting keyMode: \"code\" matches by the physical key position (event.code) instead of the character it produces (event.key), so a binding for the key printed \"A\" fires regardless of the active keyboard layout."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I bind a shortcut to Cmd on Mac and Ctrl on Windows/Linux with a single binding?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use the cmdOrCtrl modifier alias, e.g. bindKeyboard.add(\"cmdOrCtrl+k\", callback) — it resolves to metaKey on Mac and ctrlKey everywhere else, so one binding covers both platforms."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does bind-keyboard work with server-side rendering (SSR)?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Constructing a BindKeyboard instance is safe during SSR: with the default autostart: true, it skips attaching listeners instead of throwing when there's no DOM yet."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does bind-keyboard interfere with typing in input fields?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Not unless you opt in. Setting checkInputElements: true on the constructor suppresses bindings while a text field, textarea, select, or contenteditable element is focused, with a per-binding allowInInputElements: true override for shortcuts like Escape that should still fire."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How big is bind-keyboard?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "About 5KB gzipped, with zero runtime dependencies."
+                }
+              }
+            ]
+          }
+        ]
       }
     </script>
   </head>
@@ -74,9 +161,8 @@
         </div>
       </div>
       <p class="subtitle">
-        A lightweight (~5KB gzip), dependency-free library for binding
-        keyboard shortcuts — layout-agnostic, cross-platform, and safe by
-        default.
+        A lightweight (~5KB gzip), dependency-free library for binding keyboard
+        shortcuts — layout-agnostic, cross-platform, and safe by default.
       </p>
     </header>
 
@@ -86,8 +172,8 @@
           Press any key combination to see it detected below.
         </p>
         <p class="mobile-note">
-          This demo reacts to real keydown/keyup events — best experienced
-          with a physical keyboard.
+          This demo reacts to real keydown/keyup events — best experienced with
+          a physical keyboard.
         </p>
         <div id="keyboard" class="keyboard" aria-hidden="true"></div>
         <div class="combo-readout">
@@ -101,15 +187,13 @@
           <span class="control-label">keyMode</span>
           <div class="segmented" id="keymode-toggle">
             <button type="button" data-value="key">key</button>
-            <button type="button" data-value="code" class="active">
-              code
-            </button>
+            <button type="button" data-value="code" class="active">code</button>
           </div>
           <p class="control-desc">
-            <code>key</code> matches <code>event.key</code> (layout-aware —
-            e.g. Ctrl+A needs an actual "A" from the active layout);
-            <code>code</code> matches <code>event.code</code>, the physical
-            key position, regardless of layout.
+            <code>key</code> matches <code>event.key</code> (layout-aware — e.g.
+            Ctrl+A needs an actual "A" from the active layout);
+            <code>code</code> matches <code>event.code</code>, the physical key
+            position, regardless of layout.
           </p>
         </div>
 
@@ -132,10 +216,9 @@
             checkInputElements
           </label>
           <p class="control-desc">
-            When checked, shortcuts are suppressed while the input below (or
-            any text field/textarea/select/contenteditable) is focused —
-            except bindings marked <code>allowInInputElements</code>, like
-            Escape.
+            When checked, shortcuts are suppressed while the input below (or any
+            text field/textarea/select/contenteditable) is focused — except
+            bindings marked <code>allowInInputElements</code>, like Escape.
           </p>
         </div>
 
@@ -173,15 +256,15 @@
         <li>
           <span class="feature-icon" aria-hidden="true">🌐</span>
           <span
-            >Layout-agnostic matching via <code>event.code</code> — no need
-            to switch to a Latin layout</span
+            >Layout-agnostic matching via <code>event.code</code> — no need to
+            switch to a Latin layout</span
           >
         </li>
         <li>
           <span class="feature-icon" aria-hidden="true">⌘</span>
           <span
-            ><code>cmdOrCtrl</code> — one binding, the right modifier on
-            every platform</span
+            ><code>cmdOrCtrl</code> — one binding, the right modifier on every
+            platform</span
           >
         </li>
         <li>
@@ -198,8 +281,8 @@
         <li>
           <span class="feature-icon" aria-hidden="true">🖥️</span>
           <span
-            >SSR-safe — skips autostart instead of throwing when there's no
-            DOM yet</span
+            >SSR-safe — skips autostart instead of throwing when there's no DOM
+            yet</span
           >
         </li>
       </ul>
@@ -214,13 +297,13 @@
       </div>
       <p class="game-hint">
         <kbd>A</kbd>/<kbd>D</kbd> or <kbd>←</kbd>/<kbd>→</kbd> to move,
-        <kbd>Space</kbd>/<kbd>W</kbd>/<kbd>↑</kbd> to jump,
-        <kbd>S</kbd>/<kbd>↓</kbd> to duck, <kbd>Shift</kbd>+<kbd>D</kbd>/<kbd
-          >→</kbd
+        <kbd>Space</kbd>/<kbd>W</kbd>/<kbd>↑</kbd> to jump, <kbd>S</kbd>/<kbd
+          >↓</kbd
         >
-        (or <kbd>Shift</kbd>+<kbd>A</kbd>/<kbd>←</kbd>) to dash — every one of
-        these is a real <code>bindKeyboard.add()</code> call, on a second
-        instance separate from the demo above.
+        to duck, <kbd>Shift</kbd>+<kbd>D</kbd>/<kbd>→</kbd> (or
+        <kbd>Shift</kbd>+<kbd>A</kbd>/<kbd>←</kbd>) to dash — every one of these
+        is a real <code>bindKeyboard.add()</code> call, on a second instance
+        separate from the demo above.
       </p>
       <div class="game-arena" id="game-arena" aria-hidden="true">
         <div class="game-character-position" id="game-character-position">
@@ -290,6 +373,72 @@
           class="code-window-body code-window-body--numbered"
         ><code id="code-sample-text"></code></pre>
       </div>
+    </section>
+
+    <section class="faq">
+      <h2>FAQ</h2>
+      <details>
+        <summary>How do I use bind-keyboard in React, Vue, or Svelte?</summary>
+        <p>
+          Create a <code>BindKeyboard</code> instance when your component mounts
+          (<code>useEffect</code> in React, <code>onMounted</code> in Vue,
+          <code>onMount</code> in Svelte) and call
+          <code>bindKeyboard.destroy()</code> on unmount to remove its
+          listeners. The "Try it in your code" section above has a
+          copy-pasteable example for each framework, in both TypeScript and
+          JavaScript.
+        </p>
+      </details>
+      <details>
+        <summary>
+          Does bind-keyboard support non-QWERTY keyboard layouts?
+        </summary>
+        <p>
+          Yes. Setting <code>keyMode: "code"</code> matches by the physical key
+          position (<code>event.code</code>) instead of the character it
+          produces (<code>event.key</code>), so a binding for the key printed
+          "A" fires regardless of the active keyboard layout.
+        </p>
+      </details>
+      <details>
+        <summary>
+          How do I bind a shortcut to Cmd on Mac and Ctrl on Windows/Linux with
+          a single binding?
+        </summary>
+        <p>
+          Use the <code>cmdOrCtrl</code> modifier alias, e.g.
+          <code>bindKeyboard.add("cmdOrCtrl+k", callback)</code> — it resolves
+          to <code>metaKey</code> on Mac and <code>ctrlKey</code>
+          everywhere else, so one binding covers both platforms.
+        </p>
+      </details>
+      <details>
+        <summary>
+          Does bind-keyboard work with server-side rendering (SSR)?
+        </summary>
+        <p>
+          Yes. Constructing a <code>BindKeyboard</code> instance is safe during
+          SSR: with the default <code>autostart: true</code>, it skips attaching
+          listeners instead of throwing when there's no DOM yet.
+        </p>
+      </details>
+      <details>
+        <summary>
+          Does bind-keyboard interfere with typing in input fields?
+        </summary>
+        <p>
+          Not unless you opt in. Setting
+          <code>checkInputElements: true</code> on the constructor suppresses
+          bindings while a text field, textarea, select, or contenteditable
+          element is focused, with a per-binding
+          <code>allowInInputElements: true</code> override for shortcuts like
+          Escape that should still fire.
+        </p>
+      </details>
+      <details>
+        <summary>How big is bind-keyboard?</summary>
+        <p>About 5KB gzipped, with zero runtime dependencies.</p>
+      </details>
     </section>
 
     <div id="shortcuts-overlay" class="overlay" hidden>

@@ -784,6 +784,69 @@ kbd {
   font-style: italic;
 }
 
+.faq {
+  max-width: 1200px;
+  margin: 24px auto 0;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.faq h2 {
+  margin: 0 0 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.faq details {
+  border-top: 1px solid var(--key-border);
+  padding: 12px 0;
+}
+
+.faq details:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.faq summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  list-style: none;
+}
+
+/* Custom marker instead of the native triangle, to match the accent color
+   used for every other interactive affordance on the page. */
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::before {
+  content: "+";
+  display: inline-block;
+  width: 1em;
+  color: var(--accent);
+}
+
+.faq details[open] summary::before {
+  content: "−";
+}
+
+.faq details p {
+  margin: 10px 0 0 1em;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.faq code {
+  font: 12px var(--mono);
+  color: var(--accent);
+}
+
 /* --- Mobile ------------------------------------------------------------ */
 
 @media (max-width: 1024px) {
@@ -796,7 +859,8 @@ kbd {
   }
 
   .code-sample,
-  .features {
+  .features,
+  .faq {
     padding: 16px;
   }
 
