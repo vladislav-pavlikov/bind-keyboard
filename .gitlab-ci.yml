@@ -2,6 +2,7 @@ image: node:22
 
 stages:
   - test
+  - deploy
   - publish
 
 # The project standardizes on Bun for installs and the test runner
@@ -21,6 +22,20 @@ test:
     - bun test
     - npm run build
     - npm run bundlesize
+    - npm run check-exports
+    - npm run demo:build
+
+# GitLab Pages requires a job literally named "pages" that publishes a
+# `public/` artifact — this is the live demo linked from the README.
+pages:
+  stage: deploy
+  script:
+    - npm run demo:build
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
 
 publish_npm:
   stage: publish
