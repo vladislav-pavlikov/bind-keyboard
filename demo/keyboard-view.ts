@@ -122,10 +122,8 @@ const updateHighlighting = (): void => {
 // key never gets the regular momentary .pressed highlight, and it never
 // shows up in the "Detected combination" readout either, since it isn't a
 // real modifier getKeyCombination knows about anyway. Its state is instead
-// read fresh, every time, via KeyboardEvent.getModifierState("CapsLock")
-// on an actual event — the one signal that's actually reliable, though
-// there's no way to query it up front, so it stays at its (inactive)
-// default until the visitor's first keypress.
+// read fresh, every time, via getModifierState("CapsLock") on an actual
+// event — the one signal that's actually reliable.
 let capsLockActive = false;
 
 const applyCapsLockIndicator = (): void => {
@@ -135,10 +133,20 @@ const applyCapsLockIndicator = (): void => {
   dot?.classList.toggle("active", capsLockActive);
 };
 
-const updateCapsLockIndicator = (ev: KeyboardEvent): void => {
+// getModifierState only exists on an actual event, and only keyboard events
+// are listened for below — so on page load, before any keypress, there's
+// nothing to read it from... except MouseEvent has the exact same method,
+// and moving the mouse even slightly is far more likely to happen before
+// the visitor's first keypress. A one-off mousemove listener gets the real
+// initial state instead of defaulting to "off" until they type something.
+const updateCapsLockIndicator = (ev: KeyboardEvent | MouseEvent): void => {
   capsLockActive = ev.getModifierState("CapsLock");
   applyCapsLockIndicator();
 };
+
+document.addEventListener("mousemove", updateCapsLockIndicator, {
+  once: true,
+});
 
 export const renderKeyboard = (
   container: HTMLElement,
