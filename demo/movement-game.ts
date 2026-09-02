@@ -16,6 +16,7 @@ import { getElement } from "./dom";
 
 const arenaEl = getElement<HTMLElement>("#game-arena");
 const positionEl = getElement<HTMLElement>("#game-character-position");
+const facingEl = getElement<HTMLElement>("#game-character-facing");
 const characterEl = getElement<HTMLElement>("#game-character");
 
 const CHARACTER_WIDTH = 32;
@@ -23,6 +24,7 @@ const MOVE_SPEED = 4; // px per animation frame
 const DASH_DISTANCE = 90;
 
 let x = 0;
+let facing: 1 | -1 = 1;
 let movingLeft = false;
 let movingRight = false;
 let ducking = false;
@@ -36,6 +38,15 @@ const setPosition = (): void => {
   positionEl.style.transform = `translateX(${x}px)`;
 };
 
+// Flips the character to face the direction it's actually moving/dashing —
+// its own transform layer (see the style.css comment) so it doesn't fight
+// with .game-character's jump/duck transforms.
+const setFacing = (direction: 1 | -1): void => {
+  if (facing === direction) return;
+  facing = direction;
+  facingEl.style.transform = `scaleX(${facing})`;
+};
+
 const jump = (): void => {
   if (ducking || characterEl.classList.contains("jumping")) return;
   characterEl.classList.add("jumping");
@@ -46,6 +57,7 @@ characterEl.addEventListener("animationend", () => {
 });
 
 const dash = (direction: 1 | -1): void => {
+  setFacing(direction);
   x = clampX(x + direction * DASH_DISTANCE);
   setPosition();
   characterEl.classList.add("dashing");
@@ -142,8 +154,13 @@ bindKeyboard.add(
 );
 
 const tick = (): void => {
-  if (movingLeft && !movingRight) x = clampX(x - MOVE_SPEED);
-  else if (movingRight && !movingLeft) x = clampX(x + MOVE_SPEED);
+  if (movingLeft && !movingRight) {
+    x = clampX(x - MOVE_SPEED);
+    setFacing(-1);
+  } else if (movingRight && !movingLeft) {
+    x = clampX(x + MOVE_SPEED);
+    setFacing(1);
+  }
   setPosition();
   requestAnimationFrame(tick);
 };
