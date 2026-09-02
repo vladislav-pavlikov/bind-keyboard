@@ -3,7 +3,7 @@ import isString from "lodash/isString";
 import last from "lodash/last";
 
 import type { KeyСombination, KeyСombinationConstruct } from "../types";
-import getKeyСombination from "./getKeyСombination";
+import getKeyCombination from "./getKeyCombination";
 
 /**
  * Parses the key combination into a standardized format.
@@ -18,7 +18,7 @@ const keyParser = (
     const p = compact(
       keyCombination.toLowerCase().replaceAll(" ", "").split("+"),
     );
-    return getKeyСombination({
+    return getKeyCombination({
       ctrlKey: p.includes("ctrl"),
       shiftKey: p.includes("shift"),
       altKey: p.includes("alt"),
@@ -27,7 +27,7 @@ const keyParser = (
     });
   }
 
-  return getKeyСombination(keyCombination);
+  return getKeyCombination(keyCombination);
 };
 
 export default keyParser;

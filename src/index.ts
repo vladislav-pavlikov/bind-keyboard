@@ -101,7 +101,7 @@ class BindKeyboard {
       return;
     }
 
-    const keyCombination = helpers.getKeyСombination(ev as KeyboardEvent);
+    const keyCombination = helpers.getKeyCombination(ev as KeyboardEvent);
     const entry =
       this.#bindings?.[ev.type as Types.EventType]?.get(keyCombination);
 
@@ -121,9 +121,9 @@ class BindKeyboard {
   static keyParser = helpers.keyParser;
 
   /**
-   * @extends helpers.getKeyСombination
+   * @extends helpers.getKeyCombination
    */
-  static getKeyСombination = helpers.getKeyСombination;
+  static getKeyCombination = helpers.getKeyCombination;
 
   /**
    * Gets the binding for a specific key combination and event type.

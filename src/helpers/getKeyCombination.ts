@@ -10,7 +10,7 @@ import type { KeyСombinationConstruct, KeyСombination } from "../types";
  * @param {KeyСombinationConstruct} param - The object containing key combination properties.
  * @returns {KeyСombination} The standardized key combination.
  */
-const getKeyСombination = ({
+const getKeyCombination = ({
   ctrlKey,
   shiftKey,
   altKey,
@@ -33,4 +33,4 @@ const getKeyСombination = ({
   ).join(" + ");
 };
 
-export default getKeyСombination;
+export default getKeyCombination;
