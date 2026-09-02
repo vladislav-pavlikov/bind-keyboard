@@ -294,6 +294,14 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
   // match each platform's own native muscle memory (Cmd+A really is Select
   // All on Mac) instead of always being the physical Ctrl key regardless of
   // platform.
+  //
+  // All bindings here use "keydown", not "keypress" — "keypress" is
+  // deprecated and, worse, unreliable for modifier combinations: Chrome and
+  // Safari on macOS don't consistently fire it for Cmd+letter combos, so a
+  // binding registered on "keypress" can silently never fire for a real
+  // Cmd+A/Cmd+Z press even though the key is clearly being detected
+  // (the on-screen keyboard still lights up, since that's driven by
+  // keydown/keyup directly, not by this binding at all).
   const [selectAll] = bindKeyboard.add(
     "cmdOrCtrl+a",
     (ev) => {
@@ -301,7 +309,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
       flashShortcut(selectAll.keyCombination);
     },
     true,
-    "keypress",
+    "keydown",
     { description: "Select all" },
   );
 
@@ -311,7 +319,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
       flashShortcut(undo.keyCombination);
     },
     true,
-    "keypress",
+    "keydown",
     { description: "Undo" },
   );
 
