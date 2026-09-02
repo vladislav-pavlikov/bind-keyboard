@@ -25,6 +25,15 @@ const logDebugEvent = ({
   );
 };
 
+// Shared by every place that needs the full set of event types — the
+// membership check in add()/remove() (via #assertValidEventType below)
+// and the iteration in getAllBindings().
+const EVENT_TYPES: readonly Types.EventType[] = [
+  "keydown",
+  "keypress",
+  "keyup",
+];
+
 // Sequence steps are stored joined by this literal NUL character rather
 // than the ", " a consumer types them with — a step's own canonical form
 // can itself legitimately contain a comma (e.g. "ctrl + ," for a real,
@@ -39,6 +48,19 @@ const SEQUENCE_KEY_SEPARATOR = String.fromCharCode(0);
 
 const sequenceDisplayKey = (sequenceKey: string): string =>
   sequenceKey.split(SEQUENCE_KEY_SEPARATOR).join(", ");
+
+/**
+ * Shared by `.add()`/`.remove()` — both throw identically on an invalid
+ * `type`.
+ *
+ * @param {Types.EventType} type - The event type to validate.
+ * @throws {Classes.KeybindError} When `type` isn't one of `EVENT_TYPES`.
+ */
+const assertValidEventType = (type: Types.EventType): void => {
+  if (!EVENT_TYPES.includes(type)) {
+    throw new Classes.KeybindError("Wrong EventType.");
+  }
+};
 
 // Shared by every place that needs to know where a raw combination
 // belongs (add/remove/getKeybind) — a comma-containing string (barring
@@ -566,7 +588,7 @@ class BindKeyboard {
    * @returns {Classes.KeybindEntry[]} An array of all key bindings.
    */
   getAllBindings = (): Classes.KeybindEntry[] =>
-    (["keydown", "keypress", "keyup"] as const).flatMap((type) => [
+    EVENT_TYPES.flatMap((type) => [
       ...[...this.#bindings[type].values()].flatMap((entriesForCombination) => [
         ...entriesForCombination.values(),
       ]),
@@ -596,9 +618,7 @@ class BindKeyboard {
     type: Types.EventType = "keypress",
     options: Types.AddBindingOptions = {},
   ): Classes.KeybindEntry[] => {
-    if (!["keypress", "keydown", "keyup"].includes(type)) {
-      throw new Classes.KeybindError("Wrong EventType.");
-    }
+    assertValidEventType(type);
 
     const combinations = Array.isArray(keyCombination)
       ? keyCombination
@@ -688,9 +708,7 @@ class BindKeyboard {
     type: Types.EventType = "keypress",
     scope?: string,
   ): boolean => {
-    if (!["keypress", "keydown", "keyup"].includes(type)) {
-      throw new Classes.KeybindError("Wrong EventType.");
-    }
+    assertValidEventType(type);
 
     const { store, key } = this.#resolveTarget(keyCombination, type);
     const entriesForCombination = store.get(key);
