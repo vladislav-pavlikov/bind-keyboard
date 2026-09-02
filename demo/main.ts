@@ -189,26 +189,77 @@ const formatKeyCombinationForDisplay = (
     })
     .join(" + ");
 
-document.addEventListener("keydown", (ev) => {
-  pressedCodes.add(ev.code);
-  updateHighlighting();
-  const keyCombination = BindKeyboard.getKeyCombination(ev, currentKeyMode());
+// Modifier codes never count as the combo's "base" key — holding just
+// Ctrl+Cmd should read as that alone (no base key), the same way
+// getKeyCombination already collapses a lone modifier press.
+const MODIFIER_CODES = new Set([
+  "ControlLeft",
+  "ControlRight",
+  "ShiftLeft",
+  "ShiftRight",
+  "AltLeft",
+  "AltRight",
+  "MetaLeft",
+  "MetaRight",
+]);
+
+// The most recently pressed non-modifier key/code that's still held, if
+// any. Tracked separately from the triggering event so the readout can
+// correctly fall back to "just the modifiers" (or reset entirely) as keys
+// are released one at a time, instead of freezing at whatever combination
+// last fired on keydown — reusing the *event*'s own key/code on keyup would
+// be wrong, since that's the key being released, not one still held.
+let heldKey: { key: string; code: string } | undefined = undefined;
+
+const updateComboText = (ev: KeyboardEvent): void => {
+  if (pressedCodes.size === 0) {
+    heldKey = undefined;
+    comboTextEl.textContent = "—";
+    return;
+  }
+
+  if (!MODIFIER_CODES.has(ev.code) && pressedCodes.has(ev.code)) {
+    heldKey = { key: ev.key, code: ev.code };
+  } else if (heldKey && !pressedCodes.has(heldKey.code)) {
+    heldKey = undefined;
+  }
+
+  const keyCombination = BindKeyboard.getKeyCombination(
+    {
+      ctrlKey: ev.ctrlKey,
+      shiftKey: ev.shiftKey,
+      altKey: ev.altKey,
+      metaKey: ev.metaKey,
+      key: heldKey?.key,
+      code: heldKey?.code,
+    },
+    currentKeyMode(),
+  );
   comboTextEl.textContent = formatKeyCombinationForDisplay(
     keyCombination,
     currentIsMac(),
   );
+};
+
+document.addEventListener("keydown", (ev) => {
+  pressedCodes.add(ev.code);
+  updateHighlighting();
+  updateComboText(ev);
 });
 
 document.addEventListener("keyup", (ev) => {
   pressedCodes.delete(ev.code);
   updateHighlighting();
-  if (pressedCodes.size === 0) comboTextEl.textContent = "—";
+  updateComboText(ev);
 });
 
-// Avoid keys getting stuck highlighted if focus leaves the page mid-press.
+// Avoid keys (or the readout) getting stuck mid-combo if focus leaves the
+// page mid-press.
 window.addEventListener("blur", () => {
   pressedCodes.clear();
+  heldKey = undefined;
   updateHighlighting();
+  comboTextEl.textContent = "—";
 });
 
 // --- Demo bindings + BindKeyboard instance ----------------------------------
