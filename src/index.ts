@@ -196,18 +196,33 @@ class BindKeyboard {
       ? keyCombination
       : [keyCombination];
     const { [type]: bindingsForType } = this.#bindings;
+    const parsedCombinations = combinations.map((combination) =>
+      helpers.keyParser(combination, this.#keyMode),
+    );
 
-    return combinations.map((combination) => {
-      const parsedCombination = helpers.keyParser(combination, this.#keyMode);
-      const hasExistingBinding = bindingsForType.has(parsedCombination);
+    if (options.override === false) {
+      const seen = new Set<Types.KeyCombination>();
+      const conflict = parsedCombinations.find((parsedCombination) => {
+        if (
+          bindingsForType.has(parsedCombination) ||
+          seen.has(parsedCombination)
+        ) {
+          return true;
+        }
 
-      if (options.override === false && hasExistingBinding) {
+        seen.add(parsedCombination);
+        return false;
+      });
+
+      if (conflict) {
         throw new Classes.KeybindError(
-          `A binding for "${parsedCombination}" (${type}) already exists. Pass { override: true } (the default) to replace it.`,
+          `A binding for "${conflict}" (${type}) already exists. Pass { override: true } (the default) to replace it.`,
         );
       }
+    }
 
-      if (this.#debug && hasExistingBinding) {
+    return parsedCombinations.map((parsedCombination) => {
+      if (this.#debug && bindingsForType.has(parsedCombination)) {
         // eslint-disable-next-line no-console -- surfaces a real footgun (silently replacing a binding) only when the consumer opted into `debug`.
         console.warn(
           `[bind-keyboard] Overwriting existing binding for "${parsedCombination}" (${type}).`,
@@ -238,7 +253,7 @@ class BindKeyboard {
   remove = (
     keyCombination: Types.KeyCombination | Types.KeyCombinationConstruct,
     type: Types.EventType = "keypress",
-  ): boolean | undefined => {
+  ): boolean => {
     if (!["keypress", "keydown", "keyup"].includes(type)) {
       throw new Classes.KeybindError("Wrong EventType.");
     }

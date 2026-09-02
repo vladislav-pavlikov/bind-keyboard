@@ -64,6 +64,27 @@ describe("Keybind Library Tests", () => {
     ).toThrow(KeybindError);
   });
 
+  it("should not leave partial bindings when add() throws on an array with override: false", () => {
+    bindKeyboard.add("ctrl+b", jest.fn());
+    expect(() =>
+      bindKeyboard.add(["ctrl+a", "ctrl+b"], jest.fn(), true, "keypress", {
+        override: false,
+      }),
+    ).toThrow(KeybindError);
+
+    expect(bindKeyboard.getKeybind("ctrl+a")).not.toBeDefined();
+  });
+
+  it("should throw on a duplicate combination within the same array when override: false", () => {
+    expect(() =>
+      bindKeyboard.add(["ctrl+z", "ctrl+z"], jest.fn(), true, "keypress", {
+        override: false,
+      }),
+    ).toThrow(KeybindError);
+
+    expect(bindKeyboard.getKeybind("ctrl+z")).not.toBeDefined();
+  });
+
   it("should not trigger key binding when key combination does not match", () => {
     const callback = jest.fn();
     bindKeyboard.add({ key: "a", ctrlKey: true }, callback, true, "keydown");
@@ -94,6 +115,22 @@ describe("Keybind Library Tests", () => {
     const event = new KeyboardEvent("keydown", {
       key: "ф",
       code: "KeyA",
+      ctrlKey: true,
+    });
+    dispatchEvent(event);
+
+    expect(callback).toHaveBeenCalled();
+    bindKeyboardCode.stopListeners();
+  });
+
+  it("should match a punctuation key combination added as a string when keyMode is code", () => {
+    const bindKeyboardCode = new BindKeyboard({ keyMode: "code" });
+    const callback = jest.fn();
+    bindKeyboardCode.add("ctrl+,", callback, true, "keydown");
+
+    const event = new KeyboardEvent("keydown", {
+      key: ",",
+      code: "Comma",
       ctrlKey: true,
     });
     dispatchEvent(event);
