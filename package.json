@@ -11,6 +11,19 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/bind-keyboard.js",
       "require": "./dist/bind-keyboard.umd.cjs"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react.js",
+      "require": "./dist/react.umd.cjs"
+    }
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
     }
   },
   "engines": {
@@ -34,7 +47,10 @@
   ],
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.13.0",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^20.19.43",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
     "bun-types": "^1.4.0",
     "eslint": "^9.39.5",
     "eslint-config-love": "^155.0.0",
@@ -48,6 +64,8 @@
     "lint-staged": "^15.5.2",
     "pinst": "^3.0.0",
     "prettier": "^3.9.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "typescript": "^5.9.3",
     "vite": "^8.2.2",
     "vite-plugin-dts": "^5.1.0"
@@ -60,7 +78,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && vite build --config vite.react.config.ts",
     "preview": "vite preview",
     "test": "bun test",
     "lint": "eslint 'src/**/*.{js,ts,jsx,tsx}' 'demo/**/*.ts' --quiet --fix",
@@ -85,6 +103,14 @@
     {
       "path": "./dist/bind-keyboard.umd.cjs",
       "maxSize": "4.5 kB"
+    },
+    {
+      "path": "./dist/react.js",
+      "maxSize": "5 kB"
+    },
+    {
+      "path": "./dist/react.umd.cjs",
+      "maxSize": "5 kB"
     }
   ]
 }

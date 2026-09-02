@@ -21,6 +21,7 @@
 - Safe to construct during server-side rendering — it skips autostart instead of throwing when there's no DOM yet.
 - Scopes — tag a binding so it only fires while its scope is active, with the same key combination free to mean something else (or nothing) globally.
 - Key sequences (e.g. a Vim-style "press `g` then `o`") — `"g,o"` fires once every step is pressed in order, within a configurable timeout of each other.
+- A `useKeybind` React hook (`bind-keyboard/react`, a separate entry point) — creates and tears down its own binding alongside the component's own lifecycle.
 
 Not currently supported: "or" alternates in a single binding (e.g. "`shift+g` or `o`") — register the callback for both combinations instead (`.add(["shift+g", "o"], callback)`).
 
@@ -179,6 +180,41 @@ A comma immediately after a `+` is a literal comma key, not a separator, so a re
 Everything else about a sequence's binding works the same as a plain one — `scope`, `allowInInputElements`, `description`, and `override: false`'s conflict check (against other sequences registered for the same combination and scope) all apply exactly as documented above. `preventRepeat` has no effect on a sequence.
 
 A bare modifier press between two steps (e.g. tapping Shift) doesn't reset progress — only a genuine mismatched key does, sending that sequence back to its first step. If completing one sequence would be ambiguous with another still-pending one that shares its prefix (e.g. `"g,o"` and `"g,o,x"` both registered, and `"g"` then `"o"` just pressed), neither fires — under `debug`, a console warning names both instead of guessing which was meant.
+
+## React
+
+`bind-keyboard/react` — a separate entry point, so importing the core library never pulls in React or vice versa — exports a `useKeybind` hook:
+
+```tsx
+import { useKeybind } from "bind-keyboard/react";
+
+function SearchBox() {
+  const [open, setOpen] = useState(false);
+
+  useKeybind("cmdOrCtrl+k", (event) => {
+    event.preventDefault();
+    setOpen(true);
+  });
+
+  // ...
+}
+```
+
+`useKeybind(keyCombination, callback, options?)` creates its own `BindKeyboard` instance inside a `useEffect` and destroys it on cleanup — a component never leaks a listener past its own lifetime, and it's inherently safe to call during server-side rendering (the effect, and so the instance, simply never runs there). `callback` doesn't need to be stable across renders; the latest one is always used without tearing down and recreating the binding, but `keyCombination` and `options` are compared by content, so passing a literal array/object inline on every render doesn't resubscribe either — only an actual change to what they contain does.
+
+`options` accepts everything `.add()`'s own options object does (`allowInInputElements`, `override`, `description`, `scope`), plus:
+
+| Option               | Type                         | Default      | Description                                                         |
+| -------------------- | ---------------------------- | ------------ | ------------------------------------------------------------------- |
+| `preventRepeat`      | `boolean`                    | `true`       | `.add()`'s own `preventRepeat` argument.                            |
+| `type`               | `EventType`                  | `"keypress"` | `.add()`'s own `type` argument.                                     |
+| `enabled`            | `boolean`                    | `true`       | Set `false` to unregister without unmounting the component.         |
+| `target`             | `EventTarget \| HTMLElement` | `globalThis` | Passed straight through to this call's own `BindKeyboard` instance. |
+| `keyMode`            | `"key" \| "code"`            | `"key"`      | Passed straight through to this call's own `BindKeyboard` instance. |
+| `checkInputElements` | `boolean`                    | `true`       | Passed straight through to this call's own `BindKeyboard` instance. |
+| `debug`              | `0 \| 1 \| 2`                | `0`          | Passed straight through to this call's own `BindKeyboard` instance. |
+
+Each `useKeybind()` call owns an independent `BindKeyboard` instance (and so its own `target`/`keyMode`/etc.) — there's no shared, app-wide instance to configure elsewhere.
 
 ## Errors and types
 

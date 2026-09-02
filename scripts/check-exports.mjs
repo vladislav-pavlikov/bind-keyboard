@@ -48,6 +48,35 @@ await check(
   },
 );
 
+// The "./react" subpath needs an actual React to import — install it as a
+// real (dev) dependency of this repo, not require the consumer's own copy,
+// since this script runs standalone via node.
+const assertHook = (mod, buildLabel) => {
+  const useKeybindExport = mod.useKeybind ?? mod.default;
+
+  if (typeof useKeybindExport !== "function") {
+    throw new Error(
+      `useKeybind is not a function on the ${buildLabel} export (got ${typeof useKeybindExport})`,
+    );
+  }
+};
+
+await check(
+  `require("${name}/react") resolves via "exports"."./react"."require" and exposes useKeybind`,
+  () => {
+    const mod = require(`${name}/react`);
+    assertHook(mod, "CJS");
+  },
+);
+
+await check(
+  `import("${name}/react") resolves via "exports"."./react"."import" and exposes useKeybind`,
+  async () => {
+    const mod = await import(`${name}/react`);
+    assertHook(mod, "ESM");
+  },
+);
+
 if (failed) {
   console.error("\nExports check failed.");
   process.exit(1);

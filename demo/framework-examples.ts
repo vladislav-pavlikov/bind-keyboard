@@ -28,41 +28,31 @@ export const FRAMEWORK_FILENAMES: Record<
   Record<Language, string>
 > = {
   vanilla: { ts: "example.ts", js: "example.js" },
-  react: { ts: "useShortcuts.tsx", js: "useShortcuts.jsx" },
+  react: { ts: "useShortcuts.ts", js: "useShortcuts.js" },
   vue: { ts: "App.vue", js: "App.vue" },
   svelte: { ts: "App.svelte", js: "App.svelte" },
 };
 
-const REACT_TS = `import { useEffect } from "react";
-import BindKeyboard from "bind-keyboard";
+// bind-keyboard/react is a separate entry point (react is a peer
+// dependency, only ever imported there) exporting useKeybind — it creates
+// its own BindKeyboard instance in a useEffect and destroys it on
+// cleanup, so there's no manual effect/destroy to write by hand anymore.
+const REACT_TS = `import { useKeybind } from "bind-keyboard/react";
 
 export function useShortcuts(): void {
-  useEffect(() => {
-    const bindKeyboard = new BindKeyboard();
-
-    bindKeyboard.add("cmdOrCtrl+k", (event: KeyboardEvent) => {
-      event.preventDefault();
-      // your code here
-    });
-
-    return () => bindKeyboard.destroy();
-  }, []);
+  useKeybind("cmdOrCtrl+k", (event: KeyboardEvent) => {
+    event.preventDefault();
+    // your code here
+  });
 }`;
 
-const REACT_JS = `import { useEffect } from "react";
-import BindKeyboard from "bind-keyboard";
+const REACT_JS = `import { useKeybind } from "bind-keyboard/react";
 
 export function useShortcuts() {
-  useEffect(() => {
-    const bindKeyboard = new BindKeyboard();
-
-    bindKeyboard.add("cmdOrCtrl+k", (event) => {
-      event.preventDefault();
-      // your code here
-    });
-
-    return () => bindKeyboard.destroy();
-  }, []);
+  useKeybind("cmdOrCtrl+k", (event) => {
+    event.preventDefault();
+    // your code here
+  });
 }`;
 
 const VUE_TS = `<script setup lang="ts">
