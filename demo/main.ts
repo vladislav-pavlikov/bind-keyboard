@@ -160,12 +160,31 @@ const currentKeyMode = (): KeyMode => {
   return isKeyMode(value) ? value : "key";
 };
 
+const currentIsMac = (): boolean =>
+  getElement<HTMLButtonElement>("#layout-toggle .active").dataset.value ===
+  "mac";
+
+// getKeyCombination's "meta" token is deliberately platform-neutral (it
+// mirrors KeyboardEvent.metaKey, matched identically everywhere) — but on
+// screen it should read the way the current layout's own key is labeled,
+// same as the on-screen keyboard already does (⌘ on Mac, "Win" elsewhere).
+// Purely a display transform: matching/registration always still use "meta".
+const formatKeyCombinationForDisplay = (
+  keyCombination: string,
+  isMac: boolean,
+): string =>
+  keyCombination
+    .split(" + ")
+    .map((token) => (token === "meta" ? (isMac ? "⌘" : "win") : token))
+    .join(" + ");
+
 document.addEventListener("keydown", (ev) => {
   pressedCodes.add(ev.code);
   updateHighlighting();
-  comboTextEl.textContent = BindKeyboard.getKeyCombination(
-    ev,
-    currentKeyMode(),
+  const keyCombination = BindKeyboard.getKeyCombination(ev, currentKeyMode());
+  comboTextEl.textContent = formatKeyCombinationForDisplay(
+    keyCombination,
+    currentIsMac(),
   );
 });
 
@@ -416,10 +435,6 @@ const wireSegmentedToggle = (selector: string, onChange: () => void): void => {
     onChange();
   });
 };
-
-const currentIsMac = (): boolean =>
-  getElement<HTMLButtonElement>("#layout-toggle .active").dataset.value ===
-  "mac";
 
 // index.html hardcodes "mac" as the default-active button in the layout
 // toggle (a reasonable static fallback) — seed it from platform detection
