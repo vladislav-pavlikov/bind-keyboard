@@ -32,18 +32,28 @@ registerOverlayScopeHandle({
 
 const overlayEl = getElement<HTMLElement>("#shortcuts-overlay");
 
-const openOverlay = (): void => {
+// Both return whether they actually changed anything — "?" pressed again
+// while this very overlay is already open (or Escape pressed while it's
+// already closed) should be a true no-op, not just skip the DOM/scope
+// side effects while still flashing "Show all shortcuts"/"Close the
+// shortcuts overlay" as if something happened. That flash is driven by
+// each binding's own callback below, which only fires it when told to.
+
+const openOverlay = (): boolean => {
   // "?" is unscoped (see above), so it fires even while the *game's*
   // overlay is already open — without this, it would stack this overlay
   // on top of that one instead of doing nothing.
-  if (isAnyOverlayOpen()) return;
+  if (isAnyOverlayOpen()) return false;
   overlayEl.hidden = false;
   notifyOverlayOpened("main-shortcuts");
+  return true;
 };
 
-const closeOverlay = (): void => {
+const closeOverlay = (): boolean => {
+  if (overlayEl.hidden) return false;
   overlayEl.hidden = true;
   notifyOverlayClosed("main-shortcuts");
+  return true;
 };
 
 const flashShortcut = (keyCombination: string): void => {
@@ -135,8 +145,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
   const [closeShortcut] = bindKeyboard.add(
     "escape",
     () => {
-      closeOverlay();
-      flashShortcut(closeShortcut.keyCombination);
+      if (closeOverlay()) flashShortcut(closeShortcut.keyCombination);
     },
     true,
     "keydown",
@@ -157,8 +166,7 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     { key: "?", code: "Slash", shiftKey: true },
     (ev) => {
       ev.preventDefault();
-      openOverlay();
-      flashShortcut(showAll.keyCombination);
+      if (openOverlay()) flashShortcut(showAll.keyCombination);
     },
     true,
     "keydown",
@@ -190,10 +198,9 @@ export const createBindKeyboard = (): BindKeyboard => {
   return bindKeyboard;
 };
 
-getElement<HTMLElement>("#overlay-close").addEventListener(
-  "click",
-  closeOverlay,
-);
+getElement<HTMLElement>("#overlay-close").addEventListener("click", () => {
+  closeOverlay();
+});
 
 overlayEl.addEventListener("click", (ev) => {
   if (ev.target === overlayEl) closeOverlay();
