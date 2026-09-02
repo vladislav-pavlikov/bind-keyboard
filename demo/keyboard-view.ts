@@ -147,7 +147,7 @@ export const currentKeyMode = (): KeyMode => {
   const {
     dataset: { value },
   } = getElement<HTMLButtonElement>("#keymode-toggle .active");
-  return isKeyMode(value) ? value : "key";
+  return isKeyMode(value) ? value : "code";
 };
 
 export const currentIsMac = (): boolean =>
