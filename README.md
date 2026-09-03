@@ -2,12 +2,14 @@
 
 [![npm](https://img.shields.io/npm/v/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
 [![npm downloads](https://img.shields.io/npm/dm/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
-<!-- Static, not bundlephobia (which pulls from npm and is frequently
-     rate-limited/unavailable) — update the "4.4kB" alongside package.json's
-     own bundlesize entries whenever `npm run bundlesize`'s numbers move
-     meaningfully; see CHANGELOG.md's size-related entries for precedent. -->
+<!-- A shields.io "endpoint" badge, not bundlephobia (which pulls from npm
+     and is frequently rate-limited/unavailable) — reads badge-size.json,
+     which scripts/write-size-badge.mjs computes and publishes to GitLab
+     Pages fresh on every push to main (see the "pages" job in
+     .gitlab-ci.yml), so this stays live with zero manual upkeep and no
+     third-party bundle-analysis dependency. -->
 
-[![gzip size](https://img.shields.io/badge/gzip-4.4kB-blue)](https://bundlephobia.com/result?p=bind-keyboard)
+[![gzip size](https://img.shields.io/endpoint?url=https://bind-keyboard.gitlab.io/bind-keyboard/badge-size.json)](https://bundlephobia.com/result?p=bind-keyboard)
 [![pipeline status](https://gitlab.com/bind-keyboard/bind-keyboard/badges/main/pipeline.svg)](https://gitlab.com/bind-keyboard/bind-keyboard/-/commits/main)
 [![coverage report](https://gitlab.com/bind-keyboard/bind-keyboard/badges/main/coverage.svg)](https://gitlab.com/bind-keyboard/bind-keyboard/-/commits/main)
 

@@ -91,7 +91,8 @@
     "check-exports": "npm run build && node scripts/check-exports.mjs",
     "check-dist-behavior": "npm run build && node scripts/check-dist-behavior.mjs",
     "demo:dev": "node scripts/generate-llms-full.mjs && vite --config vite.demo.config.ts",
-    "demo:build": "node scripts/generate-llms-full.mjs && tsc -p demo/tsconfig.json && vite build --config vite.demo.config.ts"
+    "demo:build": "node scripts/generate-llms-full.mjs && tsc -p demo/tsconfig.json && vite build --config vite.demo.config.ts",
+    "pages:build": "npm run build && npm run demo:build && node scripts/write-size-badge.mjs"
   },
   "repository": "https://gitlab.com/bind-keyboard/bind-keyboard.git",
   "homepage": "https://gitlab.com/bind-keyboard/bind-keyboard",
