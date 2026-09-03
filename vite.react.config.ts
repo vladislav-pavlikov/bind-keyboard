@@ -16,7 +16,8 @@ import dts from "vite-plugin-dts";
 // trade-off (a few KB, if an app imports both "bind-keyboard" and
 // "bind-keyboard/react", over one truly shared copy).
 export default defineConfig({
-  plugins: [dts({ outDir: "dist/react" })],
+  // See the matching comment in vite.config.ts — same reason, same fix.
+  plugins: [dts({ outDir: "dist/react", exclude: ["src/**/*.test.ts"] })],
   publicDir: false,
   build: {
     // Runs after vite.config.ts's own build (see package.json's "build"
