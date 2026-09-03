@@ -39,7 +39,6 @@ export default defineConfig({
       output: {
         exports: "named",
       },
-      treeshake: true, // TODO
     },
   },
 });
