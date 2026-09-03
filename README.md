@@ -21,14 +21,14 @@
      fresh on every push to main (see .github/workflows/pages.yml), so both
      stay live with zero manual upkeep and no external dependency. -->
 
-[![gzip size](https://img.shields.io/endpoint?url=https://vladislav-pavlikov.github.io/bind-keyboard/badge-size.json)](https://bundlephobia.com/result?p=bind-keyboard)
-[![coverage](https://img.shields.io/endpoint?url=https://vladislav-pavlikov.github.io/bind-keyboard/coverage-badge.json)](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml)
+[![gzip size](https://img.shields.io/endpoint?url=https://bind-keyboard.vladislav-pavlikov.ru/badge-size.json)](https://bundlephobia.com/result?p=bind-keyboard)
+[![coverage](https://img.shields.io/endpoint?url=https://bind-keyboard.vladislav-pavlikov.ru/coverage-badge.json)](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml)
 [![test](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml/badge.svg)](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml)
 [![license](https://img.shields.io/github/license/vladislav-pavlikov/bind-keyboard)](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/LICENSE)
 
 `bind-keyboard` is a lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations. It's designed to simplify handling keyboard events in your web applications.
 
-**[Live demo →](https://vladislav-pavlikov.github.io/bind-keyboard/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements`, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
+**[Live demo →](https://bind-keyboard.vladislav-pavlikov.ru/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements`, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
 
 ## Features
 

@@ -6,10 +6,10 @@ bind-keyboard binds callback functions to keyboard key combinations (e.g. `"cmdO
 
 ## Docs
 
-- [Full reference](https://vladislav-pavlikov.github.io/bind-keyboard/llms-full.txt): the entire README inlined into one file — constructor options, the full `.add()`/`.remove()`/`.getKeybind()`/`.getAllBindings()` API, error types — no links to follow.
+- [Full reference](https://bind-keyboard.vladislav-pavlikov.ru/llms-full.txt): the entire README inlined into one file — constructor options, the full `.add()`/`.remove()`/`.getKeybind()`/`.getAllBindings()` API, error types — no links to follow.
 - [README](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/README.md): same content, rendered on GitHub.
 - [CHANGELOG](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/CHANGELOG.md): version history.
-- [Live demo](https://vladislav-pavlikov.github.io/bind-keyboard/): an on-screen keyboard highlighting detected combinations, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
+- [Live demo](https://bind-keyboard.vladislav-pavlikov.ru/): an on-screen keyboard highlighting detected combinations, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
 
 ## Quick start
 

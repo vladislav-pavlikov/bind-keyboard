@@ -4,11 +4,14 @@ import { defineConfig } from "vite";
 // `build.lib` mode) — this is an ordinary app build for the public demo
 // page, output to `public/` at the repo root, which is what
 // actions/upload-pages-artifact (see .github/workflows/pages.yml) expects
-// to find. `base` matches the GitHub Pages project-page URL
-// (https://fameowner.github.io/bind-keyboard/), not the domain root —
-// without it, built asset URLs would 404 once actually deployed.
+// to find. `base` is "/" rather than "/bind-keyboard/" because Pages is
+// configured with a custom domain of its own
+// (https://bind-keyboard.vladislav-pavlikov.ru/), which serves from the
+// domain root — a plain *.github.io project-page URL would need
+// "/bind-keyboard/" instead, since it has no subdomain of its own to
+// dedicate to just this one repo.
 export default defineConfig({
-  base: "/bind-keyboard/",
+  base: "/",
   root: "demo",
   server: {
     fs: {
