@@ -9,7 +9,31 @@ import keyParser from "./keyParser";
 // not a two-step sequence with an empty second step). This lets a comma
 // serve as both the sequence separator and a perfectly ordinary bindable
 // key, without either meaning ever being ambiguous.
-const SEQUENCE_SEPARATOR = /(?<!\+),/u;
+//
+// This used to be a single `/(?<!\+),/u` regex (negative lookbehind), but
+// lookbehind assertions throw a SyntaxError — at parse time, crashing the
+// whole module for every consumer, not just this function — on Safari/iOS
+// below 16.4 (March 2023; see https://caniuse.com/js-regexp-lookbehind).
+// tinykeys shipped that same lookbehind and had to revert it for exactly
+// this reason (jamiebuilds/tinykeys#85). A manual scan gets the identical
+// behavior without relying on syntax large parts of iOS still can't parse.
+const splitOnUnescapedComma = (input: string): string[] => {
+  const steps: string[] = [];
+  let current = "";
+
+  for (let i = 0; i < input.length; i += 1) {
+    const { [i]: char } = input;
+    if (char === "," && input[i - 1] !== "+") {
+      steps.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  steps.push(current);
+  return steps;
+};
 
 /**
  * Splits a sequence string (e.g. "g,o") into its individual, already-
@@ -32,11 +56,10 @@ const parseSequence = (
   mode: KeyMode,
   ignoreModifiers: boolean,
 ): string[] | undefined => {
-  if (!SEQUENCE_SEPARATOR.test(input)) return undefined;
+  const steps = splitOnUnescapedComma(input);
+  if (steps.length === 1) return undefined;
 
-  return input
-    .split(SEQUENCE_SEPARATOR)
-    .map((step) => keyParser(step, mode, ignoreModifiers));
+  return steps.map((step) => keyParser(step, mode, ignoreModifiers));
 };
 
 export default parseSequence;

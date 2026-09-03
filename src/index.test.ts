@@ -442,6 +442,31 @@ describe("Keybind Library Tests", () => {
     guarded.destroy();
   });
 
+  it("should not intercept keys while an input inside an open shadow root is focused", () => {
+    // document.activeElement stops at a shadow root's host element — it
+    // never reports the actual focused descendant inside an open shadow
+    // root on its own. Regression test for a real gap found by reading
+    // mousetrap's own test suite ("z key does not fire when inside an
+    // input element in an open shadow dom"), confirmed to exist here too
+    // before isInputOrTextArea started walking .shadowRoot.activeElement.
+    const guarded = new BindKeyboard();
+    const callback = jest.fn();
+    guarded.add("ctrl+a", callback);
+
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: "open" });
+    const input = document.createElement("input");
+    shadow.appendChild(input);
+    input.focus();
+
+    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    expect(callback).not.toHaveBeenCalled();
+
+    host.remove();
+    guarded.destroy();
+  });
+
   it("should trigger bindings while an input is focused when checkInputElements is explicitly false", () => {
     const unguarded = new BindKeyboard({ checkInputElements: false });
     const callback = jest.fn();
