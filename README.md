@@ -181,6 +181,29 @@ Everything else about a sequence's binding works the same as a plain one — `sc
 
 A bare modifier press between two steps (e.g. tapping Shift) doesn't reset progress — only a genuine mismatched key does, sending that sequence back to its first step. If completing one sequence would be ambiguous with another still-pending one that shares its prefix (e.g. `"g,o"` and `"g,o,x"` both registered, and `"g"` then `"o"` just pressed), neither fires — under `debug`, a console warning names both instead of guessing which was meant.
 
+### Plain bindings and sequences sharing a key
+
+A plain binding and a sequence can register the same starting key without conflict — by default, the plain one just fires immediately, exactly as if the sequence didn't exist, while the sequence tracks its own progress independently in the background:
+
+```ts
+bindKeyboard.add("g", toggleGrid, true, "keydown");
+bindKeyboard.add("g,o", goToFile, true, "keydown");
+// Pressing "g" always fires toggleGrid right away — even if "o" follows
+// right after and goToFile fires too.
+```
+
+If firing both would actually be wrong for a specific binding, opt that one binding into `{ deferForSequence: true }` — it then waits up to `sequenceTimeout` to see whether the press was the start of a sequence: if the sequence goes on to fire (or advance further), the deferred binding never fires at all; if it doesn't, the deferred binding fires as normal once the attempt breaks or times out (whichever's sooner, so a wrong next key doesn't cost the full timeout).
+
+```ts
+bindKeyboard.add("g", toggleGrid, true, "keydown", { deferForSequence: true });
+bindKeyboard.add("g,o", goToFile, true, "keydown");
+// Pressing "g" alone: toggleGrid fires once sequenceTimeout passes (or "g"
+// turns out not to continue into "o").
+// Pressing "g" then "o": only goToFile fires — toggleGrid never does.
+```
+
+This only guards the key's role as a sequence's _first_ step — a same-key sequence like `"g,g"` still fires a deferred `"g"` binding on the press that completes it too, since from that key's point of view it isn't starting anything new. Off by default; it only changes behavior for a binding that explicitly opts in.
+
 ## React
 
 `bind-keyboard/react` — a separate entry point, so importing the core library never pulls in React or vice versa — exports a `useKeybind` hook:

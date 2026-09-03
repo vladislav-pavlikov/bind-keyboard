@@ -235,4 +235,167 @@ describe("Sequences", () => {
 
     sequenced.destroy();
   });
+
+  it("without deferForSequence, a plain binding still fires immediately even though a same-prefix sequence is registered", () => {
+    const bk = new BindKeyboard();
+    const plain = jest.fn();
+    const sequence = jest.fn();
+    bk.add("g", plain, true, "keydown");
+    bk.add("g,o", sequence, true, "keydown");
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "g", code: "KeyG" }));
+    expect(plain).toHaveBeenCalledTimes(1);
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "o", code: "KeyO" }));
+    expect(sequence).toHaveBeenCalledTimes(1);
+
+    bk.destroy();
+  });
+
+  it("with deferForSequence, a plain binding does not fire while a same-prefix sequence completes instead", () => {
+    const bk = new BindKeyboard();
+    const plain = jest.fn();
+    const sequence = jest.fn();
+    bk.add("g", plain, true, "keydown", { deferForSequence: true });
+    bk.add("g,o", sequence, true, "keydown");
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "g", code: "KeyG" }));
+    expect(plain).not.toHaveBeenCalled();
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "o", code: "KeyO" }));
+    expect(sequence).toHaveBeenCalledTimes(1);
+    expect(plain).not.toHaveBeenCalled();
+
+    bk.destroy();
+  });
+
+  it("with deferForSequence, a plain binding fires as soon as the sequence attempt breaks, without waiting out the full timeout", () => {
+    const bk = new BindKeyboard({ sequenceTimeout: 10_000 });
+    const plain = jest.fn();
+    const sequence = jest.fn();
+    bk.add("g", plain, true, "keydown", { deferForSequence: true });
+    bk.add("g,o", sequence, true, "keydown");
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "g", code: "KeyG" }));
+    expect(plain).not.toHaveBeenCalled();
+
+    // Wrong next key — the sequence attempt breaks. deferForSequence's
+    // whole point is not making every deferred key eat a full
+    // sequenceTimeout of latency once it's no longer ambiguous, so this
+    // must fire right away rather than only after the (deliberately huge)
+    // 10s timeout above.
+    dispatchEvent(new KeyboardEvent("keydown", { key: "x", code: "KeyX" }));
+    expect(plain).toHaveBeenCalledTimes(1);
+    expect(sequence).not.toHaveBeenCalled();
+
+    bk.destroy();
+  });
+
+  it("with deferForSequence, a plain binding fires after sequenceTimeout if nothing else happens at all", async () => {
+    const bk = new BindKeyboard({ sequenceTimeout: 30 });
+    const plain = jest.fn();
+    bk.add("g", plain, true, "keydown", { deferForSequence: true });
+    bk.add("g,o", jest.fn(), true, "keydown");
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "g", code: "KeyG" }));
+    expect(plain).not.toHaveBeenCalled();
+
+    await sleep(60);
+    expect(plain).toHaveBeenCalledTimes(1);
+
+    bk.destroy();
+  });
+
+  it("with deferForSequence, a held key's own auto-repeat neither fires early nor breaks the deferral", () => {
+    const bk = new BindKeyboard({ sequenceTimeout: 10_000 });
+    const plain = jest.fn();
+    const sequence = jest.fn();
+    bk.add("g", plain, true, "keydown", { deferForSequence: true });
+    bk.add("g,o", sequence, true, "keydown");
+
+    dispatchEvent(
+      new KeyboardEvent("keydown", { key: "g", code: "KeyG", repeat: false }),
+    );
+    expect(plain).not.toHaveBeenCalled();
+
+    dispatchEvent(
+      new KeyboardEvent("keydown", { key: "g", code: "KeyG", repeat: true }),
+    );
+    dispatchEvent(
+      new KeyboardEvent("keydown", { key: "g", code: "KeyG", repeat: true }),
+    );
+    expect(plain).not.toHaveBeenCalled();
+    expect(sequence).not.toHaveBeenCalled();
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "o", code: "KeyO" }));
+    expect(sequence).toHaveBeenCalledTimes(1);
+    expect(plain).not.toHaveBeenCalled();
+
+    bk.destroy();
+  });
+
+  it("documents a deliberate scope limit: deferForSequence only guards the sequence's *first* step, so a same-key sequence's own completing press still also fires the plain binding", () => {
+    // deferForSequence exists to stop a plain binding firing on the press
+    // that *starts* a same-prefix sequence (see the tests above) — it does
+    // not track every later step too, so it can't also catch the much
+    // narrower case of a same-key sequence like "g,g" whose *last* press
+    // is physically the same keystroke as its first. That would need
+    // tracking every in-progress sequence's remaining steps, not just
+    // whether this key starts one — real complexity for a deliberately
+    // simple, opt-in escape hatch. Documented here as a known boundary,
+    // not silently left for someone to trip over.
+    const bk = new BindKeyboard({ sequenceTimeout: 10_000 });
+    const plain = jest.fn();
+    const sequence = jest.fn();
+    bk.add("g", plain, true, "keydown", { deferForSequence: true });
+    bk.add("g,g", sequence, true, "keydown");
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "g", code: "KeyG" }));
+    expect(plain).not.toHaveBeenCalled();
+
+    dispatchEvent(new KeyboardEvent("keyup", { key: "g", code: "KeyG" }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "g", code: "KeyG" }));
+    expect(sequence).toHaveBeenCalledTimes(1);
+    expect(plain).toHaveBeenCalledTimes(1);
+
+    bk.destroy();
+  });
+
+  it("with deferForSequence, a second deferred press flushes (fires) the first rather than dropping it", () => {
+    const bk = new BindKeyboard({ sequenceTimeout: 10_000 });
+    const gCallback = jest.fn();
+    const hCallback = jest.fn();
+    bk.add("g", gCallback, true, "keydown", { deferForSequence: true });
+    bk.add("g,o", jest.fn(), true, "keydown");
+    bk.add("h", hCallback, true, "keydown", { deferForSequence: true });
+    bk.add("h,i", jest.fn(), true, "keydown");
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "g", code: "KeyG" }));
+    expect(gCallback).not.toHaveBeenCalled();
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "h", code: "KeyH" }));
+    expect(gCallback).toHaveBeenCalledTimes(1);
+    expect(hCallback).not.toHaveBeenCalled();
+
+    bk.destroy();
+  });
+
+  it("warns (under debug) and has no effect when deferForSequence is set on a sequence itself", () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- intentionally silences console.warn noise for this test.
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const bk = new BindKeyboard({ debug: 1 });
+    const callback = jest.fn();
+    bk.add("g,o", callback, true, "keydown", { deferForSequence: true });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("has no effect"),
+    );
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "g", code: "KeyG" }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "o", code: "KeyO" }));
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
+    bk.destroy();
+  });
 });

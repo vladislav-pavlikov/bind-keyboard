@@ -24,6 +24,7 @@ describe("Keybind Library Tests", () => {
       eventType: "keypress",
       preventRepeat: true,
       allowInInputElements: false,
+      deferForSequence: false,
     });
   });
 

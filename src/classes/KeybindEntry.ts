@@ -8,6 +8,7 @@ interface KeybindEntryProps {
   allowInInputElements?: boolean;
   description?: string;
   scope?: string;
+  deferForSequence?: boolean;
 }
 
 class KeybindEntry {
@@ -18,6 +19,7 @@ class KeybindEntry {
   public readonly allowInInputElements: boolean;
   public readonly description?: string;
   public readonly scope?: string;
+  public readonly deferForSequence: boolean;
 
   constructor({
     keyCombination,
@@ -27,6 +29,7 @@ class KeybindEntry {
     allowInInputElements,
     description,
     scope,
+    deferForSequence,
   }: KeybindEntryProps) {
     this.keyCombination = keyCombination;
     this.callback = callback;
@@ -35,6 +38,7 @@ class KeybindEntry {
     this.allowInInputElements = allowInInputElements ?? false;
     this.description = description;
     this.scope = scope;
+    this.deferForSequence = deferForSequence ?? false;
   }
 }
 

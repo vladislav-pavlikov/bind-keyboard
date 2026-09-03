@@ -1,6 +1,10 @@
 import type * as Types from "./types";
 import * as Classes from "./classes";
 import * as helpers from "./helpers";
+import {
+  SEQUENCE_KEY_SEPARATOR,
+  sequenceDisplayKey,
+} from "./helpers/sequenceKey";
 
 /**
  * Logs a single handled (or observed) key event to the console. Module-level
@@ -33,21 +37,6 @@ const EVENT_TYPES: readonly Types.EventType[] = [
   "keypress",
   "keyup",
 ];
-
-// Sequence steps are stored joined by this literal NUL character rather
-// than the ", " a consumer types them with — a step's own canonical form
-// can itself legitimately contain a comma (e.g. "ctrl + ," for a real,
-// physical Ctrl+Comma binding — see helpers/parseSequence's own
-// lookbehind for why that doesn't get mistaken for a sequence to begin
-// with), which would make a comma-joined *storage* key ambiguous to
-// split back apart. A NUL character can never appear in any real key's
-// name, so it's safe as an internal-only delimiter; sequenceDisplayKey
-// below turns it back into the readable, comma-separated form for
-// anything a human might actually read.
-const SEQUENCE_KEY_SEPARATOR = String.fromCharCode(0);
-
-const sequenceDisplayKey = (sequenceKey: string): string =>
-  sequenceKey.split(SEQUENCE_KEY_SEPARATOR).join(", ");
 
 /**
  * Shared by `.add()`/`.remove()` — both throw identically on an invalid
@@ -94,18 +83,24 @@ class BindKeyboard {
 
   // Sequences (e.g. "g,o") — same shape and scope-coexistence rules as
   // #bindings, but keyed by the full, comma-joined sequence string rather
-  // than a single simultaneous combination. See #matchSequences.
+  // than a single simultaneous combination. See #sequenceMatcher.
   readonly #sequences: Record<
     Types.EventType,
     Map<string, Map<string | undefined, Classes.KeybindEntry>>
   >;
 
-  // How far into its own steps each registered sequence has progressed —
-  // keyed by the sequence's full string, value is the index of the next
-  // expected step (0 = not yet started). See #matchSequences.
-  readonly #sequenceProgress = new Map<string, number>();
-  #sequenceTimer: ReturnType<typeof setTimeout> | undefined = undefined;
   readonly #sequenceTimeout: number;
+
+  // Progress tracking and live-event matching for #sequences — see
+  // SequenceMatcher. #sequences itself (the registered sequences store)
+  // stays here rather than moving in too, since it's shared with
+  // #bindings under the exact same ResolvedTarget registration machinery.
+  readonly #sequenceMatcher: Classes.SequenceMatcher;
+
+  // Backs { deferForSequence: true } — see DeferredPlainFireTracker for
+  // how a plain binding's press gets recognized as possibly having just
+  // started a sequence in the first place.
+  readonly #deferredPlainFire: Classes.DeferredPlainFireTracker;
 
   // Scopes currently active — see enableScope/disableScope/setActiveScopes.
   #activeScopes = new Set<string>();
@@ -152,6 +147,25 @@ class BindKeyboard {
       keyup: new Map(),
     };
     this.#sequenceTimeout = props.sequenceTimeout ?? 1000;
+    this.#sequenceMatcher = new Classes.SequenceMatcher({
+      sequences: this.#sequences,
+      sequenceTimeout: this.#sequenceTimeout,
+      debug: this.#debug,
+      onCompleted: (ev, sequenceKey, sequencesForType) => {
+        this.#fireSequence(ev, sequenceKey, sequencesForType);
+      },
+      onSettled: (completed, isStillPending) => {
+        this.#deferredPlainFire.resolve(completed, isStillPending);
+      },
+    });
+    this.#deferredPlainFire = new Classes.DeferredPlainFireTracker({
+      sequenceTimeout: this.#sequenceTimeout,
+      fire: (entry, ev, eventType, keyCombination) => {
+        this.#firePlainEntry(entry, ev, eventType, keyCombination);
+      },
+      sequencesStartedBy: (keyCombination, eventType) =>
+        this.#sequenceMatcher.startedBy(keyCombination, eventType),
+    });
     this.#lastFiredCombination = {
       keydown: undefined,
       keypress: undefined,
@@ -315,130 +329,6 @@ class BindKeyboard {
   }
 
   /**
-   * Logs (under `debug`) that two or more registered sequences would
-   * otherwise fire ambiguously on this same press — e.g. "g,o" completing
-   * on the same event that "g,o,x" is still one press away from
-   * completing too. Neither fires; refusing to guess which one the
-   * consumer actually meant is safer than picking one.
-   *
-   * @param {string[]} completed - The sequence(s) that just reached their last step.
-   * @param {string[]} stillPending - The sequence(s) that also matched this press but need at least one more.
-   */
-  #warnSequenceConflict(completed: string[], stillPending: string[]): void {
-    if (!this.#debug) return;
-
-    const completedList = completed
-      .map((s) => `"${sequenceDisplayKey(s)}"`)
-      .join(", ");
-    const pendingList = stillPending
-      .map((s) => `"${sequenceDisplayKey(s)}"`)
-      .join(", ");
-    const pendingNote =
-      stillPending.length > 0
-        ? ` while [${pendingList}] ${stillPending.length > 1 ? "are" : "is"} still waiting for more presses`
-        : "";
-
-    // eslint-disable-next-line no-console -- a heads-up only when the consumer opted into `debug`; deliberately fires none of them rather than guessing which was meant.
-    console.warn(
-      `[bind-keyboard] Sequence conflict: ${completedList} would fire${pendingNote} — refusing to fire any of them.`,
-    );
-  }
-
-  /**
-   * Advances (or resets) a single registered sequence's progress against
-   * this event. A bare modifier press (e.g. tapping Shift between two
-   * steps) neither advances nor resets progress — anything else that
-   * doesn't match the expected next step does, requiring that sequence
-   * to start over from its first step.
-   *
-   * @param {string} sequenceKey - The sequence's full, SEQUENCE_KEY_SEPARATOR-joined string (also its key in #sequences/#sequenceProgress).
-   * @param {Types.KeyCombination} keyCombination - This event's already-resolved combination.
-   * @param {boolean} isModifierEvent - Whether `ev.code` is a modifier key.
-   * @returns {"completed" | "pending" | "unchanged"} Whether this event completed the sequence, advanced it partway, or left its progress as-is.
-   */
-  #advanceSequence(
-    sequenceKey: string,
-    keyCombination: Types.KeyCombination,
-    isModifierEvent: boolean,
-  ): "completed" | "pending" | "unchanged" {
-    const steps = sequenceKey.split(SEQUENCE_KEY_SEPARATOR);
-    const stepIndex = this.#sequenceProgress.get(sequenceKey) ?? 0;
-
-    if (keyCombination !== steps[stepIndex]) {
-      if (!isModifierEvent) this.#sequenceProgress.delete(sequenceKey);
-      return "unchanged";
-    }
-
-    if (stepIndex < steps.length - 1) {
-      this.#sequenceProgress.set(sequenceKey, stepIndex + 1);
-      return "pending";
-    }
-
-    this.#sequenceProgress.delete(sequenceKey);
-    return "completed";
-  }
-
-  /**
-   * Advances (or resets) every registered sequence's progress against
-   * this event, and fires whichever one (if any) just completed
-   * unambiguously. A single shared inactivity timer covers every
-   * sequence at once (not one per sequence, mirroring how
-   * #lastFiredCombination is one value per event type, not per binding)
-   * — any sequence-relevant event pushes it back by #sequenceTimeout, and
-   * it clears every sequence's progress once it fires.
-   *
-   * OS auto-repeats of a held key are ignored entirely (not just as a
-   * "no match" that would reset progress) — otherwise simply holding a
-   * key a little too long could complete a sequence on its own, most
-   * obviously a same-key one like "g,g": the second, third, etc. repeat
-   * of that single physical press would each independently "match" the
-   * next expected step.
-   *
-   * @param {KeyboardEvent} ev - The keyboard event.
-   * @param {Types.EventType} eventType - `ev.type`, narrowed.
-   * @param {boolean} isModifierEvent - Whether `ev.code` is a modifier key.
-   * @param {Types.KeyCombination} keyCombination - This event's already-resolved combination.
-   */
-  #matchSequences(
-    ev: KeyboardEvent,
-    eventType: Types.EventType,
-    isModifierEvent: boolean,
-    keyCombination: Types.KeyCombination,
-  ): void {
-    const { [eventType]: sequencesForType } = this.#sequences;
-    if (sequencesForType.size === 0 || ev.repeat) return;
-
-    clearTimeout(this.#sequenceTimer);
-    this.#sequenceTimer = setTimeout(() => {
-      this.#sequenceProgress.clear();
-    }, this.#sequenceTimeout);
-
-    const stillPending: string[] = [];
-    const completed: string[] = [];
-
-    for (const sequenceKey of sequencesForType.keys()) {
-      const result = this.#advanceSequence(
-        sequenceKey,
-        keyCombination,
-        isModifierEvent,
-      );
-
-      if (result === "pending") stillPending.push(sequenceKey);
-      else if (result === "completed") completed.push(sequenceKey);
-    }
-
-    if (completed.length === 0) return;
-
-    if (completed.length > 1 || stillPending.length > 0) {
-      this.#warnSequenceConflict(completed, stillPending);
-      return;
-    }
-
-    const [sequenceKey] = completed;
-    this.#fireSequence(ev, sequenceKey, sequencesForType);
-  }
-
-  /**
    * Fires whichever entry (if any) is registered — across scopes — for
    * the sequence that just completed unambiguously, honoring
    * checkInputElements/allowInInputElements and the debug log the same
@@ -475,6 +365,43 @@ class BindKeyboard {
     entry?.callback(ev);
   }
 
+  /**
+   * Actually fires a plain binding entry (or does nothing if there wasn't
+   * one) — the shared tail end of both an immediate #listener match and a
+   * deferred one firing later via DeferredPlainFireTracker, so
+   * checkInputElements/allowInInputElements, the debug log, and
+   * #lastFiredCombination bookkeeping all stay in exactly one place and
+   * behave identically either way. checkInputElements is deliberately
+   * re-checked here rather than only at match time, the same way
+   * #fireSequence already re-checks it for a completed sequence — what's
+   * focused *right now*, at the moment of actually firing, is what matters.
+   *
+   * @param {Classes.KeybindEntry | undefined} entry - The entry to fire, if any.
+   * @param {KeyboardEvent} ev - The keyboard event.
+   * @param {Types.EventType} eventType - `ev.type`, narrowed.
+   * @param {Types.KeyCombination} keyCombination - This event's already-resolved combination.
+   */
+  #firePlainEntry(
+    entry: Classes.KeybindEntry | undefined,
+    ev: KeyboardEvent,
+    eventType: Types.EventType,
+    keyCombination: Types.KeyCombination,
+  ): void {
+    const shouldSkipForInputElement =
+      this.#checkInputElements &&
+      !entry?.allowInInputElements &&
+      helpers.isInputOrTextArea();
+
+    if (shouldSkipForInputElement) return;
+
+    if (this.#debug === 2 || (this.#debug === 1 && entry)) {
+      logDebugEvent({ ev, keyCombination, callback: entry?.callback });
+    }
+
+    if (entry) this.#lastFiredCombination[eventType] = keyCombination;
+    entry?.callback(ev);
+  }
+
   readonly #listener = (ev: Event): void => {
     if (!(ev instanceof KeyboardEvent)) return;
 
@@ -490,20 +417,16 @@ class BindKeyboard {
       isModifierEvent,
     );
 
-    this.#matchSequences(ev, eventType, isModifierEvent, keyCombination);
+    this.#sequenceMatcher.match(ev, eventType, isModifierEvent, keyCombination);
 
     const entry = this.#resolveEntry(
       this.#bindings[eventType].get(keyCombination),
     );
 
-    // Do not intercept key events when typing in input fields, unless this
-    // specific binding opted in via { allowInInputElements: true }.
-    const shouldSkipForInputElement =
-      this.#checkInputElements &&
-      !entry?.allowInInputElements &&
-      helpers.isInputOrTextArea();
-
-    if (shouldSkipForInputElement) return;
+    // { deferForSequence: true } bindings only — see DeferredPlainFireTracker#handle.
+    if (this.#deferredPlainFire.handle(entry, ev, eventType, keyCombination)) {
+      return;
+    }
 
     // event.repeat reflects the *physical key* being auto-repeated by the
     // OS, not that this specific combination already fired — if a modifier
@@ -519,12 +442,7 @@ class BindKeyboard {
 
     if (isRepeatOfLastFired && entry?.preventRepeat) return;
 
-    if (this.#debug === 2 || (this.#debug === 1 && entry)) {
-      logDebugEvent({ ev, keyCombination, callback: entry?.callback });
-    }
-
-    if (entry) this.#lastFiredCombination[eventType] = keyCombination;
-    entry?.callback(ev);
+    this.#firePlainEntry(entry, ev, eventType, keyCombination);
   };
 
   /**
@@ -685,6 +603,17 @@ class BindKeyboard {
             `[bind-keyboard] "${target.displayKey}" is commonly used by browsers/OS for "${reservedShortcutHint}". Some browsers let a page override this with event.preventDefault() in the callback; others (e.g. new tab/window, close tab, quit) never dispatch the event to the page at all — verify this binding actually works in your target browsers.`,
           );
         }
+
+        // deferForSequence only ever does anything for a plain binding's
+        // own immediate-fire path (see #listener) — a sequence never fires
+        // "immediately" in the first place, so setting it here can only
+        // ever be a mistake, not a deliberate choice.
+        if (options.deferForSequence && target.isSequence) {
+          // eslint-disable-next-line no-console -- a heads-up only when the consumer opted into `debug`; never blocks registration.
+          console.warn(
+            `[bind-keyboard] { deferForSequence: true } on "${target.displayKey}" (${type}${scopeLabel}) has no effect — it only applies to a plain binding, not a sequence.`,
+          );
+        }
       }
 
       const entry = new Classes.KeybindEntry({
@@ -695,6 +624,7 @@ class BindKeyboard {
         allowInInputElements: options.allowInInputElements,
         description: options.description,
         scope,
+        deferForSequence: options.deferForSequence,
       });
 
       entriesForCombination.set(scope, entry);
@@ -743,8 +673,8 @@ class BindKeyboard {
     Object.values(this.#sequences).forEach((map) => {
       map.clear();
     });
-    this.#sequenceProgress.clear();
-    clearTimeout(this.#sequenceTimer);
+    this.#sequenceMatcher.clear();
+    this.#deferredPlainFire.cancel();
   };
 
   /**
