@@ -339,6 +339,18 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: opacity 150ms ease;
+}
+
+/* Only the sidebar's own list ever pauses — the "?" overlay's list is
+   never visible at the same time this state matters (opening the overlay
+   is itself one of the things pausing disables). */
+#shortcuts-list.paused {
+  opacity: 0.35;
+}
+
+#shortcuts-hint.paused {
+  color: var(--accent);
 }
 
 .shortcuts-list li {

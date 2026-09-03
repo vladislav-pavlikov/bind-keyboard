@@ -208,6 +208,11 @@ export const createBindKeyboard = (): BindKeyboard => {
   renderShortcuts(bindKeyboard);
   bindKeyboard.enableScope("keyboard");
   currentBindKeyboard = bindKeyboard;
+  // main.ts's rebuildBindKeyboard (triggered by the keyMode/
+  // checkInputElements toggles) destroys and recreates this instance —
+  // a visitor who paused shouldn't find themselves unpaused just because
+  // they also flipped an unrelated setting.
+  applyPausedState(bindKeyboard);
 
   return bindKeyboard;
 };
@@ -218,4 +223,33 @@ getElement<HTMLElement>("#overlay-close").addEventListener("click", () => {
 
 overlayEl.addEventListener("click", (ev) => {
   if (ev.target === overlayEl) closeOverlay();
+});
+
+// --- Pause/resume --------------------------------------------------------
+// Deliberately separate from the "?" overlay's own scope-based suspension
+// above: a scope only ever affects the bindings tagged with it, so "?"
+// (unscoped, by design — it has to keep working to open the overlay at
+// all) stays live throughout. stopListeners()/startListeners() are coarser
+// on purpose — every listener on `target`, tagged or not, so *nothing*
+// this instance registered fires while paused, "?" included. That's the
+// actual difference worth demonstrating, not just restating the same
+// on/off behavior scopes already show.
+
+const pauseToggleEl = getElement<HTMLInputElement>("#pause-toggle");
+const shortcutsListEl = getElement<HTMLElement>("#shortcuts-list");
+const shortcutsHintEl = getElement<HTMLElement>("#shortcuts-hint");
+
+const applyPausedState = (bindKeyboard: BindKeyboard): void => {
+  if (pauseToggleEl.checked) bindKeyboard.stopListeners();
+  else bindKeyboard.startListeners();
+
+  shortcutsListEl.classList.toggle("paused", pauseToggleEl.checked);
+  shortcutsHintEl.classList.toggle("paused", pauseToggleEl.checked);
+  shortcutsHintEl.textContent = pauseToggleEl.checked
+    ? "⏸ paused — even ? won't work"
+    : "press ? for full view";
+};
+
+pauseToggleEl.addEventListener("change", () => {
+  if (currentBindKeyboard) applyPausedState(currentBindKeyboard);
 });

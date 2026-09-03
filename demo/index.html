@@ -235,9 +235,24 @@
         </div>
 
         <div class="control">
+          <label class="checkbox-row">
+            <input type="checkbox" id="pause-toggle" />
+            Pause shortcuts
+          </label>
+          <p class="control-desc">
+            <code>stopListeners()</code> / <code>startListeners()</code> —
+            unlike scopes (used by the <kbd>?</kbd> overlay's own "keyboard"
+            scope above), pausing is all-or-nothing: even unscoped bindings
+            like <kbd>?</kbd> itself and Toggle theme stop working too.
+          </p>
+        </div>
+
+        <div class="control">
           <div class="control-label-row">
             <span class="control-label">Registered shortcuts</span>
-            <span class="hint">press <kbd>?</kbd> for full view</span>
+            <span class="hint" id="shortcuts-hint">
+              press <kbd>?</kbd> for full view
+            </span>
           </div>
           <ul id="shortcuts-list" class="shortcuts-list"></ul>
         </div>
