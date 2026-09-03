@@ -3,6 +3,7 @@ import { getElement } from "./dom";
 import { currentKeyMode } from "./keyboard-view";
 import { renderShortcutsInto } from "./shortcuts-list";
 import { launchFireworks } from "./fireworks";
+import { registerWebMcpTools } from "./webmcp";
 import {
   isAnyOverlayOpen,
   notifyOverlayClosed,
@@ -30,6 +31,10 @@ registerOverlayScopeHandle({
   disable: () => currentBindKeyboard?.disableScope("keyboard"),
   enable: () => currentBindKeyboard?.enableScope("keyboard"),
 });
+
+// See webmcp.ts — a no-op in every browser that doesn't support
+// document.modelContext yet, which as of writing is effectively all of them.
+registerWebMcpTools(() => currentBindKeyboard);
 
 const overlayEl = getElement<HTMLElement>("#shortcuts-overlay");
 
