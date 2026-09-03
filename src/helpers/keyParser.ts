@@ -48,9 +48,20 @@ const keyParser = (
   ignoreModifiers = false,
 ): KeyCombination => {
   if (typeof keyCombination === "string") {
-    const p = keyCombination
-      .toLowerCase()
-      .replaceAll(" ", "")
+    const normalized = keyCombination.toLowerCase().replaceAll(" ", "");
+
+    // "+" is the modifier/key separator everywhere else in this syntax, so
+    // a plain split("+") can never represent the literal "+" key itself —
+    // "ctrl++" would silently lose its base key and parse as bare "ctrl"
+    // instead (mousetrap and hotkeys-js both have issues/tests for exactly
+    // this: "+" doesn't work — mousetrap's "binding plus key alone should
+    // work"/"binding to alt++ should work"). A trailing "+" is unambiguous
+    // though: nothing can legally follow the base key, so a "+" in that
+    // position always means the key itself, never a separator with an
+    // empty next token. Stripping it before splitting leaves only real
+    // modifier tokens for the rest of the string to parse normally.
+    const literalPlusKey = normalized.endsWith("+");
+    const p = (literalPlusKey ? normalized.slice(0, -1) : normalized)
       .split("+")
       .filter(Boolean);
 
@@ -62,7 +73,7 @@ const keyParser = (
     // unless they're the only token present.
     const isModPressed = p.includes("cmdorctrl");
     const nonModTokens = p.filter((token) => token !== "cmdorctrl");
-    const [key] = nonModTokens.slice(-1);
+    const [key] = literalPlusKey ? ["+"] : nonModTokens.slice(-1);
 
     return getKeyCombination(
       {
