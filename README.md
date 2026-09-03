@@ -21,6 +21,7 @@
 - Safe to construct during server-side rendering — it skips autostart instead of throwing when there's no DOM yet.
 - Scopes — tag a binding so it only fires while its scope is active, with the same key combination free to mean something else (or nothing) globally.
 - Key sequences (e.g. a Vim-style "press `g` then `o`") — `"g,o"` fires once every step is pressed in order, within a configurable timeout of each other.
+- Pause/resume every binding at once (`stopListeners()`/`startListeners()`) without removing any of them.
 - A `useKeybind` React hook (`bind-keyboard/react`, a separate entry point) — creates and tears down its own binding alongside the component's own lifecycle.
 
 Not currently supported: "or" alternates in a single binding (e.g. "`shift+g` or `o`") — register the callback for both combinations instead (`.add(["shift+g", "o"], callback)`).
@@ -121,7 +122,13 @@ Clears every binding without touching the underlying event listeners.
 
 ### `.startListeners()` / `.stopListeners()`
 
-Attach/detach the underlying event listeners on `target`, independent of the bindings themselves.
+Attach/detach the underlying event listeners on `target`, independent of the bindings themselves — i.e. pause/resume: `stopListeners()` stops every binding from firing without removing any of them (unlike `removeAll()`, which does), and `startListeners()` turns them back on exactly as registered. Both are idempotent — calling either one again while already stopped/started is a harmless no-op, so there's no need to track whether you're currently paused before calling one:
+
+```ts
+// Pause every shortcut while a modal (with its own key handling) is open.
+openModal.addEventListener("open", () => bindKeyboard.stopListeners());
+openModal.addEventListener("close", () => bindKeyboard.startListeners());
+```
 
 ### `.destroy()`
 
