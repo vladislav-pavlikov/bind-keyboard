@@ -2,6 +2,7 @@ import BindKeyboard from "../src";
 import { getElement } from "./dom";
 import { currentKeyMode } from "./keyboard-view";
 import { renderShortcutsInto } from "./shortcuts-list";
+import { launchFireworks } from "./fireworks";
 import {
   isAnyOverlayOpen,
   notifyOverlayClosed,
@@ -142,18 +143,18 @@ const registerDemoBindings = (bindKeyboard: BindKeyboard): void => {
     { description: "Toggle theme" },
   );
 
-  // A key sequence (see the README's Sequences section) — Vim's own "go
-  // to top", pressing "g" twice in a row. Same "keyboard" scope as
-  // select all/undo: it acts on the page itself, not on the popup.
-  const [scrollToTop] = bindKeyboard.add(
+  // A key sequence (see the README's Sequences section) — press "g" twice
+  // in a row. Same "keyboard" scope as select all/undo: it acts on the
+  // page itself, not on the popup.
+  const [fireworks] = bindKeyboard.add(
     "g,g",
     () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      flashShortcut(scrollToTop.keyCombination);
+      launchFireworks();
+      flashShortcut(fireworks.keyCombination);
     },
     true,
     "keydown",
-    { description: "Scroll to top (sequence: g,g)", scope: "keyboard" },
+    { description: "Fireworks! (sequence: g,g)", scope: "keyboard" },
   );
 
   const [closeShortcut] = bindKeyboard.add(
