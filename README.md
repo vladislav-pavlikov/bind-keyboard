@@ -2,6 +2,17 @@
 
 [![npm](https://img.shields.io/npm/v/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
 [![npm downloads](https://img.shields.io/npm/dm/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
+[![types](https://img.shields.io/npm/types/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
+![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
+<!-- unpacked-size and node (engines.node) both read from whatever's
+     *currently published* on npm — until 1.0.0 actually ships, they'll
+     show 0.0.11-era numbers (node in particular will likely read "not
+     specified", since that version predates the engines field). Not
+     broken, just not this branch's own numbers yet — same caveat as the
+     version/downloads badges right above them. -->
+
+[![unpacked size](https://img.shields.io/npm/unpacked-size/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
+[![node](https://img.shields.io/node/v/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
 <!-- A shields.io "endpoint" badge, not bundlephobia (which pulls from npm
      and is frequently rate-limited/unavailable) — reads badge-size.json,
      which scripts/write-size-badge.mjs computes and publishes to GitLab
