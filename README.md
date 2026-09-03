@@ -2,7 +2,14 @@
 
 [![npm](https://img.shields.io/npm/v/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
 [![npm downloads](https://img.shields.io/npm/dm/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
-[![npm](https://img.shields.io/bundlephobia/minzip/bind-keyboard)](https://bundlephobia.com/result?p=bind-keyboard)
+<!-- Static, not bundlephobia (which pulls from npm and is frequently
+     rate-limited/unavailable) — update the "4.4kB" alongside package.json's
+     own bundlesize entries whenever `npm run bundlesize`'s numbers move
+     meaningfully; see CHANGELOG.md's size-related entries for precedent. -->
+
+[![gzip size](https://img.shields.io/badge/gzip-4.4kB-blue)](https://bundlephobia.com/result?p=bind-keyboard)
+[![pipeline status](https://gitlab.com/bind-keyboard/bind-keyboard/badges/main/pipeline.svg)](https://gitlab.com/bind-keyboard/bind-keyboard/-/commits/main)
+[![coverage report](https://gitlab.com/bind-keyboard/bind-keyboard/badges/main/coverage.svg)](https://gitlab.com/bind-keyboard/bind-keyboard/-/commits/main)
 
 ![GitLab (self-managed)](https://img.shields.io/gitlab/license/bind-keyboard%2Fbind-keyboard?link=https%3A%2F%2Fgitlab.com%2Fbind-keyboard%2Fbind-keyboard%2F-%2Fblob%2Fmain%2FLICENSE)
 

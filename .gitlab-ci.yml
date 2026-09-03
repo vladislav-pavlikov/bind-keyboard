@@ -19,12 +19,18 @@ test:
   script:
     - npm run lint
     - npx tsc --noEmit
-    - bun test
+    - bun test --coverage
     - npm run build
     - npm run bundlesize
     - npm run check-exports
     - npm run check-dist-behavior
     - npm run demo:build
+  # Feeds the README's coverage badge (GitLab renders it from this job's own
+  # trace, no external service or artifact upload needed) — matches bun's
+  # own coverage table, e.g. "All files | 100.00 | 100.00 |", capturing the
+  # second (% Lines) column. Verified directly against real `bun test
+  # --coverage` output before wiring this in.
+  coverage: '/All files\s*\|\s*[\d.]+\s*\|\s*([\d.]+)/'
 
 # GitLab Pages requires a job literally named "pages" that publishes a
 # `public/` artifact — this is the live demo linked from the README.
