@@ -481,6 +481,27 @@ describe("Keybind Library Tests", () => {
     expect(destroyable.getAllBindings()).toHaveLength(0);
   });
 
+  it("should ignore a keydown that's part of an active IME composition, but not the ordinary press right after it ends", () => {
+    // Confirming an IME candidate (typing Japanese/Chinese/Korean, etc.)
+    // commonly sends Enter — a key that carries no meaning of its own
+    // during composition. isComposing is true for exactly those events and
+    // false again the moment composition genuinely ends. Regression test
+    // for a real gap found via tinykeys' own dedicated test for this.
+    const bk = new BindKeyboard();
+    const callback = jest.fn();
+    bk.add("enter", callback, true, "keydown");
+
+    const composing = new KeyboardEvent("keydown", { key: "Enter" });
+    Object.defineProperty(composing, "isComposing", { value: true });
+    dispatchEvent(composing);
+    expect(callback).not.toHaveBeenCalled();
+
+    dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    bk.destroy();
+  });
+
   it("should not intercept keys while a contenteditable element is focused", () => {
     const guarded = new BindKeyboard({ checkInputElements: true });
     const callback = jest.fn();

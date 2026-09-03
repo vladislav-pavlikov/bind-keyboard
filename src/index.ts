@@ -405,6 +405,18 @@ class BindKeyboard {
   readonly #listener = (ev: Event): void => {
     if (!(ev instanceof KeyboardEvent)) return;
 
+    // While an IME (Input Method Editor — used to type Japanese, Chinese,
+    // Korean, and more) composition is in progress, its keydown/keyup
+    // events carry whatever key the user is navigating candidates with —
+    // most commonly Enter, to confirm one — not that key's usual meaning.
+    // Letting those through would fire an unrelated "enter"-bound shortcut
+    // on every confirmed IME candidate. `isComposing` is true for exactly
+    // these events and false again on the very next, ordinary one once
+    // composition actually ends, so this only ever suppresses events that
+    // are genuinely still part of composing, never a real key press right
+    // after. tinykeys has a dedicated test for this same behavior.
+    if (ev.isComposing) return;
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- #listener is only ever registered for keydown/keypress/keyup (see startListeners/stopListeners below), so ev.type is always a Types.EventType.
     const eventType = ev.type as Types.EventType;
     const isModifierEvent = helpers.isModifierCode(ev.code);
