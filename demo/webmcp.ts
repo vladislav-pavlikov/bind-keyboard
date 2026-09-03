@@ -8,9 +8,12 @@ import type BindKeyboard from "../src";
 // involved. As of writing it's behind an Origin Trial in Chrome 149+/Edge
 // 150+ (and this origin isn't enrolled in either — a visitor would need
 // their own local flag/trial token for this to actually do anything), so
-// document.modelContext is simply *absent* in every other browser. Every
-// call below is feature-detected accordingly; there's nothing to catch or
-// polyfill, just nothing to run.
+// document.modelContext is simply *absent* in every other browser, or
+// present but gated behind a flag/trial token that isn't set — feature-
+// detected accordingly, and every step (found or not, registered or
+// rejected) logs to the console with a "[webmcp]" prefix, since this being
+// silent is exactly what makes "why don't my tools show up" unanswerable
+// from the outside otherwise.
 //
 // What's exposed reuses bind-keyboard's own public API, not anything
 // bespoke — an agent gets the same "list every registered shortcut" and
@@ -78,7 +81,16 @@ const textResult = (text: string): ModelContextResult => ({
 export const registerWebMcpTools = (
   getBindKeyboard: () => BindKeyboard | undefined,
 ): void => {
-  if (!document.modelContext) return;
+  if (!document.modelContext) {
+    // This bonus feature is easy to silently no-op without a trace
+    // otherwise; one line makes "why don't my tools show up" answerable
+    // from the console alone.
+    // eslint-disable-next-line no-console -- see above.
+    console.log(
+      "[webmcp] document.modelContext isn't present in this browser — skipping tool registration.",
+    );
+    return;
+  }
   const { modelContext } = document;
 
   void modelContext
@@ -97,10 +109,16 @@ export const registerWebMcpTools = (
         return textResult(bindings || "No shortcuts are registered right now.");
       },
     })
-    .catch(() => {
-      // Registration can reject (e.g. a duplicate tool name) — nothing
-      // actionable for a demo bonus feature to do about it beyond not
-      // pretending it succeeded.
+    .then(() => {
+      // eslint-disable-next-line no-console -- confirms in the console that this actually succeeded, not just that document.modelContext existed.
+      console.log('[webmcp] registered "list_keyboard_shortcuts".');
+    })
+    .catch((error: unknown) => {
+      // eslint-disable-next-line no-console -- registration can reject (e.g. a duplicate tool name, a schema the implementation rejects) — surfacing why beats silently pretending it worked.
+      console.error(
+        '[webmcp] failed to register "list_keyboard_shortcuts":',
+        error,
+      );
     });
 
   void modelContext
@@ -133,7 +151,15 @@ export const registerWebMcpTools = (
         return textResult(`Triggered "${keyCombination}".`);
       },
     })
-    .catch(() => {
-      // See above.
+    .then(() => {
+      // eslint-disable-next-line no-console -- see the matching log above.
+      console.log('[webmcp] registered "trigger_keyboard_shortcut".');
+    })
+    .catch((error: unknown) => {
+      // eslint-disable-next-line no-console -- see the matching log above.
+      console.error(
+        '[webmcp] failed to register "trigger_keyboard_shortcut":',
+        error,
+      );
     });
 };
