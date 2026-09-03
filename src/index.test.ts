@@ -404,6 +404,49 @@ describe("Keybind Library Tests", () => {
     }
   });
 
+  it("should not let AltGr's Ctrl+Alt artifact fire a ctrl+alt binding, but a real one still does", () => {
+    // On Windows/Chrome, pressing AltGr (present on most non-US keyboards,
+    // used to type e.g. @ or µ) reports ctrlKey AND altKey both true at
+    // once — a well-documented OS-level artifact, not the user actually
+    // holding Ctrl (mousetrap#271 "AltGr = Ctrl+Alt on Windows"; tinykeys'
+    // suite has a dedicated "does not fire regular bindings when AltGraph
+    // is active" case). Without getModifierState("AltGraph") support, any
+    // "ctrl+alt+…" binding would fire on every AltGr press on those
+    // layouts. happy-dom's KeyboardEvent doesn't honor the standard
+    // `modifierAltGraph` init field, so getModifierState is monkey-patched
+    // directly here to simulate what a real browser reports.
+    const bindKeyboardCode = new BindKeyboard({ keyMode: "code" });
+    const callback = jest.fn();
+    bindKeyboardCode.add("ctrl+alt+m", callback, true, "keydown");
+
+    const altGrEvent = new KeyboardEvent("keydown", {
+      key: "µ",
+      code: "KeyM",
+      ctrlKey: true,
+      altKey: true,
+    });
+    Object.defineProperty(altGrEvent, "getModifierState", {
+      value: (modifier: string) => modifier === "AltGraph",
+    });
+    dispatchEvent(altGrEvent);
+    expect(callback).not.toHaveBeenCalled();
+
+    // A genuine Ctrl+Alt+M (AltGraph not reported) still fires normally.
+    const realEvent = new KeyboardEvent("keydown", {
+      key: "m",
+      code: "KeyM",
+      ctrlKey: true,
+      altKey: true,
+    });
+    Object.defineProperty(realEvent, "getModifierState", {
+      value: () => false,
+    });
+    dispatchEvent(realEvent);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    bindKeyboardCode.stopListeners();
+  });
+
   it("should bind the same callback to an array of key combinations", () => {
     const callback = jest.fn();
     const entries = bindKeyboard.add(["ctrl+a", "ctrl+b"], callback);

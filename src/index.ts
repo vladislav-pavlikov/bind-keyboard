@@ -266,9 +266,19 @@ class BindKeyboard {
     // releasing "d" should reliably fire a "d" keyup binding whether or
     // not Shift is also currently held (e.g. mid-dash), the same way it
     // would if nothing else were held at all.
+    //
+    // AltGr (present on most non-US keyboards, used to type e.g. @ or µ) is
+    // reported by Windows/Chrome as ctrlKey *and* altKey both true at once —
+    // a real, well-documented OS-level artifact, not the user actually
+    // holding Ctrl. Without this, any "ctrl+alt+…" binding would fire on
+    // every AltGr press on those layouts (mousetrap#271 "AltGr = Ctrl+Alt
+    // on Windows"; tinykeys' test suite has a dedicated "does not fire
+    // regular bindings when AltGraph is active" case for the same thing).
+    const isAltGraphActive = ev.getModifierState("AltGraph");
+
     return helpers.getKeyCombination(
       {
-        ctrlKey: ev.ctrlKey,
+        ctrlKey: ev.ctrlKey && !isAltGraphActive,
         shiftKey: ev.shiftKey,
         altKey: ev.altKey,
         metaKey: ev.metaKey,
