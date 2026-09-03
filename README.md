@@ -13,22 +13,22 @@
 
 [![unpacked size](https://img.shields.io/npm/unpacked-size/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
 [![node](https://img.shields.io/node/v/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
-<!-- A shields.io "endpoint" badge, not bundlephobia (which pulls from npm
-     and is frequently rate-limited/unavailable) — reads badge-size.json,
-     which scripts/write-size-badge.mjs computes and publishes to GitLab
-     Pages fresh on every push to main (see the "pages" job in
-     .gitlab-ci.yml), so this stays live with zero manual upkeep and no
-     third-party bundle-analysis dependency. -->
+<!-- Both gzip size and coverage are shields.io "endpoint" badges, not
+     bundlephobia (rate-limited/unavailable more often than not) or a
+     third-party coverage service (Codecov etc., its own signup/token) —
+     they read JSON that scripts/write-size-badge.mjs and
+     scripts/write-coverage-badge.mjs compute and publish to GitHub Pages
+     fresh on every push to main (see .github/workflows/pages.yml), so both
+     stay live with zero manual upkeep and no external dependency. -->
 
-[![gzip size](https://img.shields.io/endpoint?url=https://bind-keyboard.gitlab.io/bind-keyboard/badge-size.json)](https://bundlephobia.com/result?p=bind-keyboard)
-[![pipeline status](https://gitlab.com/bind-keyboard/bind-keyboard/badges/main/pipeline.svg)](https://gitlab.com/bind-keyboard/bind-keyboard/-/commits/main)
-[![coverage report](https://gitlab.com/bind-keyboard/bind-keyboard/badges/main/coverage.svg)](https://gitlab.com/bind-keyboard/bind-keyboard/-/commits/main)
-
-![GitLab (self-managed)](https://img.shields.io/gitlab/license/bind-keyboard%2Fbind-keyboard?link=https%3A%2F%2Fgitlab.com%2Fbind-keyboard%2Fbind-keyboard%2F-%2Fblob%2Fmain%2FLICENSE)
+[![gzip size](https://img.shields.io/endpoint?url=https://vladislav-pavlikov.github.io/bind-keyboard/badge-size.json)](https://bundlephobia.com/result?p=bind-keyboard)
+[![coverage](https://img.shields.io/endpoint?url=https://vladislav-pavlikov.github.io/bind-keyboard/coverage-badge.json)](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml)
+[![test](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml/badge.svg)](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml)
+[![license](https://img.shields.io/github/license/vladislav-pavlikov/bind-keyboard)](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/LICENSE)
 
 `bind-keyboard` is a lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations. It's designed to simplify handling keyboard events in your web applications.
 
-**[Live demo →](https://bind-keyboard.gitlab.io/bind-keyboard/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements`, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
+**[Live demo →](https://vladislav-pavlikov.github.io/bind-keyboard/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements`, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
 
 ## Features
 
@@ -296,4 +296,4 @@ const options: Types.AddBindingOptions = { description: "Undo" };
 
 ## License
 
-This project is licensed under the [MIT License](https://gitlab.com/bind-keyboard/bind-keyboard/-/blob/main/LICENSE).
+This project is licensed under the [MIT License](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/LICENSE).

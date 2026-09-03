@@ -1,0 +1,49 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Only one deployment at a time; a new push to main should win over a
+# still-running older one rather than queue behind it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2.18"
+      - run: bun install --frozen-lockfile
+
+      # Builds dist/ (needed by write-size-badge.mjs, see below) and then
+      # the demo itself into public/ — this is "pages:build" from
+      # package.json, which runs the two in that specific order (demo:build
+      # empties public/ via emptyOutDir: true, so writing the badge JSON
+      # any earlier would just get wiped the moment it ran).
+      - run: npm run pages:build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment

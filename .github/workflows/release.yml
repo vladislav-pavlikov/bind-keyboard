@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+# id-token: write is what lets npm authenticate this run via OIDC trusted
+# publishing (https://docs.npmjs.com/trusted-publishers/) — no NPM_TOKEN
+# secret stored anywhere. Requires npm CLI >= 11.5.1 and Node >= 22.14.0,
+# hence actions/setup-node below pinning a Node new enough to ship both;
+# the package itself still only requires what its own "engines" field says
+# — this is just what publishes it, not what runs it.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2.18"
+      - run: bun install --frozen-lockfile
+
+      # Same full verification the "Test" workflow runs on every push to
+      # main — a tag being pushed is not itself proof that CI passed on the
+      # exact commit it points at, so this re-runs the whole thing as the
+      # actual publish gate rather than trusting that.
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: bun test --coverage
+      - run: npm run build
+      - run: npm run bundlesize
+      - run: npm run check-exports
+      - run: npm run check-dist-behavior
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm publish

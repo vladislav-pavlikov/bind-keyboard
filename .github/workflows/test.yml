@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # The project standardizes on Bun for installs and the test runner
+      # (bunfig.toml, bun.lockb) — matches how it's installed everywhere
+      # else (CONTRIBUTING, the pre-commit hook), rather than drifting to a
+      # separate package-lock.json here.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2.18"
+      - run: bun install --frozen-lockfile
+
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: bun test --coverage
+      - run: npm run build
+      - run: npm run bundlesize
+      - run: npm run check-exports
+      - run: npm run check-dist-behavior
+      - run: npm run demo:build

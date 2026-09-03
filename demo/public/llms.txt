@@ -1,15 +1,15 @@
 # bind-keyboard
 
-> Lightweight (~3KB gzip), dependency-free TypeScript library for binding keyboard shortcuts in the browser — layout-agnostic matching via `event.code`, a cross-platform `cmdOrCtrl` modifier, and input-safe by default.
+> Lightweight (~4.5KB gzip), dependency-free TypeScript library for binding keyboard shortcuts in the browser — layout-agnostic matching via `event.code`, a cross-platform `cmdOrCtrl` modifier, and input-safe by default.
 
 bind-keyboard binds callback functions to keyboard key combinations (e.g. `"cmdOrCtrl+k"`, `"shift+d"`, a bare `"Escape"`). It has zero runtime dependencies, works with plain JS/TS or any framework by creating a `BindKeyboard` instance on mount and calling `.destroy()` on unmount, and is safe to import during server-side rendering — it skips autostart instead of throwing when there's no DOM yet.
 
 ## Docs
 
-- [Full reference](https://bind-keyboard.gitlab.io/bind-keyboard/llms-full.txt): the entire README inlined into one file — constructor options, the full `.add()`/`.remove()`/`.getKeybind()`/`.getAllBindings()` API, error types — no links to follow.
-- [README](https://gitlab.com/bind-keyboard/bind-keyboard/-/blob/main/README.md): same content, rendered on GitLab.
-- [CHANGELOG](https://gitlab.com/bind-keyboard/bind-keyboard/-/blob/main/CHANGELOG.md): version history.
-- [Live demo](https://bind-keyboard.gitlab.io/bind-keyboard/): an on-screen keyboard highlighting detected combinations, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
+- [Full reference](https://vladislav-pavlikov.github.io/bind-keyboard/llms-full.txt): the entire README inlined into one file — constructor options, the full `.add()`/`.remove()`/`.getKeybind()`/`.getAllBindings()` API, error types — no links to follow.
+- [README](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/README.md): same content, rendered on GitHub.
+- [CHANGELOG](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/CHANGELOG.md): version history.
+- [Live demo](https://vladislav-pavlikov.github.io/bind-keyboard/): an on-screen keyboard highlighting detected combinations, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
 
 ## Quick start
 
@@ -27,5 +27,5 @@ bindKeyboard.add("cmdOrCtrl+k", (event) => {
 ## Optional
 
 - [npm package](https://www.npmjs.com/package/bind-keyboard)
-- [GitLab repository](https://gitlab.com/bind-keyboard/bind-keyboard)
-- [MIT License](https://gitlab.com/bind-keyboard/bind-keyboard/-/blob/main/LICENSE)
+- [GitHub repository](https://github.com/vladislav-pavlikov/bind-keyboard)
+- [MIT License](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/LICENSE)

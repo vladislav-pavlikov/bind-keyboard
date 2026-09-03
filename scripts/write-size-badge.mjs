@@ -1,9 +1,9 @@
 // Feeds the README's "gzip size" badge (a shields.io "endpoint" badge —
 // https://img.shields.io/endpoint?url=<this file's published URL> — reads
 // whatever JSON it finds there) with a number this repo actually computed
-// itself, published to GitLab Pages alongside the demo (see the "pages"
-// job in .gitlab-ci.yml) rather than depending on a third-party bundle
-// analysis service. bundlephobia's own badge was found to be down
+// itself, published to GitHub Pages alongside the demo (see
+// .github/workflows/pages.yml) rather than depending on a third-party
+// bundle analysis service. bundlephobia's own badge was found to be down
 // ("rate limited by upstream service") when this was written — this script
 // exists so the README's size claim never depends on that kind of uptime
 // again, live-updating on every push to main instead of needing a manual
