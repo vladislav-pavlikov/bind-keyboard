@@ -26,9 +26,44 @@
 [![test](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml/badge.svg)](https://github.com/vladislav-pavlikov/bind-keyboard/actions/workflows/test.yml)
 [![license](https://img.shields.io/github/license/vladislav-pavlikov/bind-keyboard)](https://github.com/vladislav-pavlikov/bind-keyboard/blob/main/LICENSE)
 
-`bind-keyboard` is a lightweight Typescript library for managing keyboard event bindings and executing callback functions for specific key combinations. It's designed to simplify handling keyboard events in your web applications.
+Modern keyboard shortcuts for TypeScript and React — with scopes, sequences, SSR support, and zero dependencies. Built for complex interfaces (editors, dashboards, command palettes, modals) where a plain "one key, one callback" library runs out of room.
 
-**[Live demo →](https://bind-keyboard.vladislav-pavlikov.ru/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements`, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
+## Install
+
+```bash
+npm install bind-keyboard
+```
+
+## Quick start
+
+```ts
+import { BindKeyboard } from "bind-keyboard";
+
+const bindKeyboard = new BindKeyboard();
+
+bindKeyboard.add("cmdOrCtrl+k", openCommandPalette);
+bindKeyboard.add("g,i", goToInbox, true, "keydown", { scope: "gmail-style" });
+bindKeyboard.add("escape", closeModal, true, "keydown", { scope: "modal" });
+
+bindKeyboard.enableScope("modal"); // Escape only closes it while one is actually open
+```
+
+**[Try it live →](https://bind-keyboard.vladislav-pavlikov.ru/)** — an on-screen keyboard highlights pressed keys and the combination bind-keyboard detects, with toggles for `keyMode`/`checkInputElements`, a live shortcuts panel, and copy-pasteable code samples for Vanilla/React/Vue/Svelte in TS or JS.
+
+## Why not Mousetrap / tinykeys / hotkeys-js?
+
+|                                                         | bind-keyboard                 | Mousetrap             | tinykeys              | hotkeys-js                        |
+| ------------------------------------------------------- | ----------------------------- | --------------------- | --------------------- | --------------------------------- |
+| Gzip size                                               | ~4.5 kB                       | ~2 kB                 | ~1 kB                 | ~3.8 kB                           |
+| TypeScript                                              | built-in                      | community `@types`    | built-in              | built-in                          |
+| Scopes                                                  | ✓                             | ✗                     | ✗                     | ✓ (`setScope`)                    |
+| Vim/Gmail-style sequences (press one key, then another) | ✓ (`"g,o"`)                   | ✓                     | ✓                     | ✗                                 |
+| Simultaneous multi-key chords (e.g. `ctrl+a+s`)         | ✗ — throws, see [below](#api) | not designed for this | not designed for this | ✓ (tracks its own held-key state) |
+| Ignores input elements by default                       | ✓ (`checkInputElements`)      | not documented        | ✓                     | via `.filter`                     |
+| React hook included                                     | ✓ (`bind-keyboard/react`)     | ✗                     | ✗                     | ✗ (separate `react-hotkeys-hook`) |
+| SSR-safe by default                                     | ✓ (skips autostart, no DOM)   | not documented        | not documented        | not documented                    |
+
+No library here is strictly better across the board — hotkeys-js's own held-key tracking is exactly what lets it do real multi-key chords, at the cost of the missed-keyup footguns that tracking held state generally invites (see the AltGr/modifier-state notes throughout this README). bind-keyboard trades that capability for resolving every combination from a single event, and puts the resulting budget into scopes, sequences, and a first-class React hook instead.
 
 ## Features
 
@@ -44,31 +79,7 @@
 - Pause/resume every binding at once (`stopListeners()`/`startListeners()`) without removing any of them.
 - A `useKeybind` React hook (`bind-keyboard/react`, a separate entry point) — creates and tears down its own binding alongside the component's own lifecycle.
 
-Not currently supported: "or" alternates in a single binding (e.g. "`shift+g` or `o`") — register the callback for both combinations instead (`.add(["shift+g", "o"], callback)`).
-
-## Installation
-
-You can install the "bind-keyboard" library via npm:
-
-```bash
-npm install bind-keyboard
-```
-
-## Usage
-
-To use "bind-keyboard," you need to create an instance of the **`BindKeyboard`** class. This instance can be used to add and manage keyboard event bindings. Here's a basic example:
-
-```ts
-import { BindKeyboard } from "bind-keyboard";
-
-// Create a BindKeyboard instance
-const bindKeyboard = new BindKeyboard();
-
-// Add a key binding for ctrl+a
-bindKeyboard.add("ctrl+a", (event) => {
-  console.log("ctrl+a was pressed");
-});
-```
+Not currently supported: "or" alternates in a single binding (e.g. "`shift+g` or `o`") — register the callback for both combinations instead (`.add(["shift+g", "o"], callback)`). Also not supported: simultaneous multi-key chords beyond one real key plus modifiers (e.g. `"ctrl+a+s"`) — see the comparison table above and [`.add()`](#api) below for why.
 
 ## Constructor options
 
