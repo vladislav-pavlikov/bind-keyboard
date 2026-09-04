@@ -1,5 +1,9 @@
 # bind-keyboard
 
+<p align="center">
+  <img src="./.github/hero.png" alt="cmdOrCtrl+k and g,o key sequences, rendered as bind-keyboard's two headline features" width="640" />
+</p>
+
 [![npm](https://img.shields.io/npm/v/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
 [![npm downloads](https://img.shields.io/npm/dm/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
 [![types](https://img.shields.io/npm/types/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
