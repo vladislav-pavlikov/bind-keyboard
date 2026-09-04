@@ -8,18 +8,18 @@
 [![npm downloads](https://img.shields.io/npm/dm/bind-keyboard.svg)](https://www.npmjs.com/package/bind-keyboard)
 [![types](https://img.shields.io/npm/types/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
 ![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
-<!-- unpacked-size and node (engines.node) both read from whatever's
-     *currently published* on npm, so right after a release they can lag
-     this branch by a few minutes — same caveat as the version/downloads
-     badges right above them.
+<!-- The node badge (engines.node) reads from whatever's *currently
+     published* on npm, so right after a release it can lag this branch by
+     a few minutes — same caveat as the version/downloads badges above.
 
-     unpacked-size reads large (~440kB) from 1.0.1 on because the package
-     ships sourcemaps with the original TypeScript embedded. That is not
-     what a browser downloads: maps are only fetched with devtools open,
-     so the number that actually matters is the gzip badge below (~4.5kB
-     for the whole library). -->
+     There deliberately isn't an unpacked-size badge: from 1.0.1 the
+     package ships sourcemaps with the original TypeScript embedded, which
+     puts npm's unpacked figure around 440kB. That number is real but says
+     nothing about what a browser downloads — maps are only fetched with
+     devtools open — so as a "how big is this library" signal it misleads,
+     and the gzip badge below (~4.5kB, the whole library) is the honest
+     one. Please don't re-add it without solving that. -->
 
-[![unpacked size](https://img.shields.io/npm/unpacked-size/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
 [![node](https://img.shields.io/node/v/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
 <!-- Both gzip size and coverage are shields.io "endpoint" badges, not
      bundlephobia (rate-limited/unavailable more often than not) or a
