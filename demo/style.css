@@ -1035,6 +1035,23 @@ kbd {
   padding: 1px 5px;
 }
 
+/* The rule above is meant for inline mentions in prose ("call
+   `.add()`..."), but a bare "code" element selector also matches the
+   <code> inside a .code-window-body's <pre> — same specificity as that
+   block's own font/color/background rules (.code-window-body code), so
+   whichever rule happened to load last was winning the tie, pasting an
+   unwanted "pill" background/padding (and the wrong font-size) inside
+   the code window itself. This reset has strictly higher specificity
+   (one more element in the selector), so it wins regardless of source
+   order, restoring exactly what .code-window-body code already sets. */
+.recipe-article pre code {
+  font: 13px/1.6 var(--mono);
+  color: #d4d4d4;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+}
+
 .recipe-article .code-sample {
   margin: 16px auto 24px;
   padding: 16px 20px;
