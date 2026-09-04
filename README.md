@@ -114,7 +114,9 @@ bindKeyboard.add("ctrl+z", undo, true, "keydown", {
 });
 ```
 
-Throws `KeybindError` for an invalid `type`, or when `override: false` and a binding already exists for that combination _and scope_ (see [Errors and types](#errors-and-types) below) — a binding can coexist with another one registered for the same combination under a different scope without conflicting.
+Throws `KeybindError` for an invalid `type`, for a combination string with more than one non-modifier key (e.g. `"ctrl+a+s"` — see below), or when `override: false` and a binding already exists for that combination _and scope_ (see [Errors and types](#errors-and-types) below) — a binding can coexist with another one registered for the same combination under a different scope without conflicting.
+
+A real `KeyboardEvent` only ever carries one non-modifier key at a time (plus its four modifier flags), so a combination can have at most one — `"ctrl+shift+a"` (any number of modifier words plus one real key) is fine, but `"ctrl+a+s"` (two real keys meant to be held together, the way [hotkeys-js](https://github.com/jaywcjlove/hotkeys-js) supports via its own tracked key-state) can never actually match here and throws instead of silently registering `"ctrl+s"`. Use a [sequence](#sequences) (`"a,s"`, pressed one after another) or two separate bindings instead.
 
 `type` is `"keydown"` (the default), `"keyup"`, or `"keypress"` — `"keypress"` is still supported but [deprecated by the spec itself](https://developer.mozilla.org/en-US/docs/Web/API/Element/keypress_event) (it never fires for non-character keys like arrows, function keys, or Escape), so there's rarely a reason to pass it explicitly.
 
