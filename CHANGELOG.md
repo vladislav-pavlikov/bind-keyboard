@@ -2,6 +2,12 @@
 
 ## 1.0.1
 
+Packaging (no runtime behavior changed):
+
+- **Widened the `react` peer range to `^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0`** (was `^18.0.0 || ^19.0.0`). The `bind-keyboard/react` entry point imports exactly two things from React — `useEffect` and `useRef` — both of which shipped in 16.8, and it contains no JSX, so nothing about it needed 18. The old range turned away React 16.8/17 users for no technical reason. (These older lines aren't covered by CI, which runs `@testing-library/react` v16 and so needs React 18+; the API surface in question is two of the most stable hooks React has.)
+- **Relaxed `engines.node` to `>=18.0.0`** (was `^20.19.0 || >=22.12.0`). That old range was Vite's own requirement, copied verbatim — but Vite is a devDependency used to _build_ this package, never to consume it. The published bundles use no Node APIs at all, and the only post-ES2020 syntax they contain is private class fields. The old value made `npm install` warn — or hard-fail under `engine-strict` — for people on Node 18 or 20.0–20.18 who could run this perfectly well.
+- **Ship sourcemaps** (`dist/*.js.map`) with the original TypeScript embedded. The published code is minified, which Socket.dev and similar tools flag on the reasoning that minified code can't be audited; the maps answer that without giving up the size the library is built around, and give consumers real stack traces into `src/` instead of one dense line. This adds ~95kB to the tarball but nothing to what a browser downloads beyond the 39–48 byte `sourceMappingURL` comment, since maps are only fetched when devtools are open. Bundle-size budgets moved from 4.6kB to 5kB to leave room for that comment plus normal headroom.
+
 Fixed:
 
 - **Restored `"sideEffects": false`**, so bundlers can tree-shake the package again. 1.0.0 shipped it as `["./demo/**"]` — an exception carved out for this repo's own demo, which imports one module purely for its side effects. That array form turned out to cost consumers real optimization: Bun's bundler warns `wildcard sideEffects are not supported yet, which means this package will be deoptimized` and treats the whole package as side-effectful, and third-party analyzers (bundlephobia et al.) likewise downgrade it from "fully tree-shakeable". The demo's exception now lives in its own `demo/package.json` instead — bundlers resolve `sideEffects` from the nearest `package.json`, so the demo keeps building correctly while the published package goes back to a plain `false`. No runtime behavior changed; `dist/` is byte-identical to 1.0.0.

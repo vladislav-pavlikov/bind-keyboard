@@ -26,6 +26,9 @@ export default defineConfig({
     // See the matching comment in vite.config.ts — terser measurably beats
     // Vite's own default (oxc) for this entry's ESM output too.
     minify: "terser",
+    // Same reasoning as vite.config.ts: minified output stays auditable
+    // and debuggable via shipped .map files.
+    sourcemap: true,
     lib: {
       entry: resolve(import.meta.dirname, "src/react/index.ts"),
       name: "bindKeyboardReact",

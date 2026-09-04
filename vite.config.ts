@@ -35,6 +35,15 @@ export default defineConfig({
     // test suite, which only ever runs against src/ — actually imports and
     // exercises the real, minified dist/ output.
     minify: "terser",
+    // Ships .map files alongside the minified output, with the original
+    // TypeScript embedded (Rollup includes sourcesContent by default), so
+    // the published code stays auditable and consumers get real stack
+    // traces into src/ instead of one dense minified line. Socket.dev
+    // flags any minified npm package on exactly this reasoning ("packages
+    // on npm should not minify code") — the maps answer it without giving
+    // up the size the whole library is built around. They never reach a
+    // browser unless devtools are open.
+    sourcemap: true,
     rollupOptions: {
       output: {
         exports: "named",
