@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keyboard Shortcuts Inside a Modal | bind-keyboard</title>
+    <meta
+      name="description"
+      content="How to scope keyboard shortcuts to a modal so they only fire while it's open, and so background shortcuts can't fire behind it — using bind-keyboard's scopes."
+    />
+    <link
+      rel="canonical"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/modal-shortcuts.html"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="bind-keyboard" />
+    <meta
+      property="og:url"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/modal-shortcuts.html"
+    />
+    <meta
+      property="og:title"
+      content="Keyboard Shortcuts Inside a Modal"
+    />
+    <meta
+      property="og:description"
+      content="How to scope keyboard shortcuts to a modal so they only fire while it's open, and so background shortcuts can't fire behind it — using bind-keyboard's scopes."
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
+    />
+    <link rel="stylesheet" href="../style.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Keyboard Shortcuts Inside a Modal",
+        "description": "How to scope keyboard shortcuts to a modal so they only fire while it's open, and so background shortcuts can't fire behind it — using bind-keyboard's scopes.",
+        "author": { "@type": "Person", "name": "Vladislav Pavlikov" },
+        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/modal-shortcuts.html"
+      }
+    </script>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="page-header-row">
+        <h1><a href="/" style="color: inherit; text-decoration: none"
+          >bind-keyboard</a
+        ></h1>
+        <div class="header-links">
+          <a
+            class="header-link"
+            href="https://www.npmjs.com/package/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >npm ↗</a
+          >
+          <a
+            class="header-link"
+            href="https://github.com/vladislav-pavlikov/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub ↗</a
+          >
+        </div>
+      </div>
+    </header>
+    <nav class="recipe-nav"><a href="./">← All recipes</a></nav>
+
+    <main class="recipe-article">
+      <h1>Keyboard shortcuts inside a modal (and only there)</h1>
+      <p class="recipe-dek">
+        A shortcut that's only supposed to mean something while a dialog is
+        open still needs to actually stop meaning that once it closes —
+        scopes are how bind-keyboard makes that a one-line guarantee instead
+        of a manual bookkeeping problem.
+      </p>
+
+      <h2>The bug this prevents</h2>
+      <p>
+        Without scoping, a background shortcut (say, <code>"d"</code> for
+        "delete the selected item") keeps listening for its own key
+        regardless of what's on screen — so pressing <code>d</code> while a
+        confirmation modal happens to be open can silently trigger the very
+        action the modal was there to gate. The fix isn't "remember to check
+        a flag everywhere" — it's tagging the binding with a scope and
+        letting <code>enableScope</code>/<code>disableScope</code> be the
+        single source of truth for whether it's live.
+      </p>
+
+      <h2>Scoping a binding to the modal</h2>
+      <div class="code-window">
+        <div class="code-window-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="code-window-filename">modal.ts</span>
+        </div>
+        <pre
+          class="code-window-body code-window-body--numbered"
+        ><code id="scope-example">import { BindKeyboard } from "bind-keyboard";
+
+const bindKeyboard = new BindKeyboard();
+
+bindKeyboard.add("escape", closeModal, true, "keydown", {
+  scope: "modal",
+});
+bindKeyboard.add("enter", confirm, true, "keydown", {
+  scope: "modal",
+});
+
+function openModal() {
+  modalEl.hidden = false;
+  bindKeyboard.enableScope("modal");
+}
+
+function closeModal() {
+  modalEl.hidden = true;
+  bindKeyboard.disableScope("modal");
+}</code></pre>
+      </div>
+      <button type="button" class="copy-button" data-copy-target="scope-example">
+        Copy
+      </button>
+      <p>
+        A scoped binding only fires while its scope is active — Escape and
+        Enter above do nothing at all until <code>openModal()</code> runs,
+        and stop again the instant <code>closeModal()</code> does.
+      </p>
+
+      <h2>The same key can mean something else outside the modal</h2>
+      <p>
+        A scoped binding and an unscoped one can coexist on the exact same
+        key combination — whichever registered scope is currently active
+        takes priority over the unscoped one, so <code>"escape"</code> can
+        close the modal while it's open and do something else (or nothing)
+        the rest of the time, without either registration fighting the
+        other:
+      </p>
+      <div class="code-window">
+        <div class="code-window-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="code-window-filename">app.ts</span>
+        </div>
+        <pre
+          class="code-window-body code-window-body--numbered"
+        ><code id="unscoped-example">bindKeyboard.add("escape", clearSearchField); // unscoped — the fallback</code></pre>
+      </div>
+      <button
+        type="button"
+        class="copy-button"
+        data-copy-target="unscoped-example"
+      >
+        Copy
+      </button>
+
+      <h2>Multiple modals: a shared "is anything open" flag</h2>
+      <p>
+        A page with more than one independent overlay (a settings modal and
+        a shortcuts-help modal, say) needs to track <em>how many</em> are
+        open, not just a boolean, so closing one while another is still up
+        doesn't prematurely re-enable background shortcuts. bind-keyboard's
+        own demo does exactly this with a small shared module: a
+        <code>Set</code> of open overlay ids, incrementing/decrementing on
+        open/close, only calling <code>disableScope</code>/<code
+          >enableScope</code
+        > when that set actually becomes non-empty/empty — worth the same
+        pattern once a second overlay enters the picture.
+      </p>
+
+      <h2>Don't forget input elements inside the modal</h2>
+      <p>
+        If the modal has its own text input, remember
+        <code>checkInputElements</code> defaults to <code>true</code> — an
+        Escape-to-close binding needs
+        <code>allowInInputElements: true</code> to still fire while that
+        input is focused (the example above already has this backwards from
+        a real form modal on purpose — add it once your modal has a text
+        field). See
+        <a href="./command-palette.html">the command palette recipe</a> for a
+        modal that's built entirely around a focused search input.
+      </p>
+
+      <h2>Related</h2>
+      <p>
+        <a href="./command-palette.html">Building a Cmd/Ctrl+K command palette</a>
+        · <a href="./react-hook.html">React keyboard shortcuts: the useKeybind hook</a>
+      </p>
+    </main>
+
+    <footer class="recipe-footer">
+      <p>
+        <a href="/">← Back to the bind-keyboard demo</a> ·
+        <a href="./">More recipes</a>
+      </p>
+    </footer>
+
+    <script type="module" src="./recipe.ts"></script>
+  </body>
+</html>

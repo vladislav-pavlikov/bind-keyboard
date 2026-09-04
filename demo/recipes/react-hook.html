@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React Keyboard Shortcuts: the useKeybind Hook | bind-keyboard</title>
+    <meta
+      name="description"
+      content="How to add keyboard shortcuts to a React component with bind-keyboard's useKeybind hook — no manual useEffect/cleanup, no stale closures, SSR-safe by construction."
+    />
+    <link
+      rel="canonical"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook.html"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="bind-keyboard" />
+    <meta
+      property="og:url"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook.html"
+    />
+    <meta
+      property="og:title"
+      content="React Keyboard Shortcuts: the useKeybind Hook"
+    />
+    <meta
+      property="og:description"
+      content="How to add keyboard shortcuts to a React component with bind-keyboard's useKeybind hook — no manual useEffect/cleanup, no stale closures, SSR-safe by construction."
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
+    />
+    <link rel="stylesheet" href="../style.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "React Keyboard Shortcuts: the useKeybind Hook",
+        "description": "How to add keyboard shortcuts to a React component with bind-keyboard's useKeybind hook — no manual useEffect/cleanup, no stale closures, SSR-safe by construction.",
+        "author": { "@type": "Person", "name": "Vladislav Pavlikov" },
+        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook.html"
+      }
+    </script>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="page-header-row">
+        <h1><a href="/" style="color: inherit; text-decoration: none"
+          >bind-keyboard</a
+        ></h1>
+        <div class="header-links">
+          <a
+            class="header-link"
+            href="https://www.npmjs.com/package/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >npm ↗</a
+          >
+          <a
+            class="header-link"
+            href="https://github.com/vladislav-pavlikov/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub ↗</a
+          >
+        </div>
+      </div>
+    </header>
+    <nav class="recipe-nav"><a href="./">← All recipes</a></nav>
+
+    <main class="recipe-article">
+      <h1>React keyboard shortcuts: the useKeybind hook</h1>
+      <p class="recipe-dek">
+        A component-scoped shortcut in one line — registered on mount,
+        cleaned up on unmount, always calling your latest callback.
+      </p>
+
+      <h2>Install</h2>
+      <p>
+        <code>react</code> is a peer dependency of the separate
+        <code>bind-keyboard/react</code> entry point — the core
+        <code>bind-keyboard</code> import is completely unaffected either
+        way, so adding this never pulls React into a non-React project.
+      </p>
+      <div class="code-window">
+        <div class="code-window-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="code-window-filename">terminal</span>
+        </div>
+        <pre
+          class="code-window-body code-window-body--terminal"
+        ><code id="install-cmd">npm install bind-keyboard</code></pre>
+      </div>
+      <button type="button" class="copy-button" data-copy-target="install-cmd">
+        Copy
+      </button>
+
+      <h2>Basic usage</h2>
+      <p>
+        <code>useKeybind(keyCombination, callback, options?)</code> creates
+        its own <code>BindKeyboard</code> instance inside a
+        <code>useEffect</code> and destroys it on cleanup — the component
+        never leaks a listener past its own lifetime.
+      </p>
+      <div class="code-window">
+        <div class="code-window-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="code-window-filename">SaveButton.tsx</span>
+        </div>
+        <pre
+          class="code-window-body code-window-body--numbered"
+        ><code id="basic-example">import { useKeybind } from "bind-keyboard/react";
+
+function SaveButton({ onSave }: { onSave: () => void }) {
+  useKeybind("cmdOrCtrl+s", (event) => {
+    event.preventDefault(); // stop the browser's own "Save page" dialog
+    onSave();
+  });
+
+  return &lt;button onClick={onSave}&gt;Save&lt;/button&gt;;
+}</code></pre>
+      </div>
+      <button
+        type="button"
+        class="copy-button"
+        data-copy-target="basic-example"
+      >
+        Copy
+      </button>
+
+      <h2>No stale closures, no unnecessary re-subscribing</h2>
+      <p>
+        <code>callback</code> doesn't need to be stable across renders — the
+        latest one is always used (via a ref internally), without tearing
+        down and recreating the underlying binding just because an inline
+        function changed identity on every render. <code>keyCombination</code>
+        and the rest of <code>options</code> are compared by their
+        <em>serialized content</em>, not by reference, so passing a literal
+        array or object inline on every render (<code
+          >useKeybind(["ctrl+a", "ctrl+b"], cb)</code
+        >) never needlessly resubscribes either — only an actual change to
+        what they contain does.
+      </p>
+
+      <h2>Only while the component wants it: <code>enabled</code></h2>
+      <p>
+        Pass <code>enabled: false</code> to unregister without unmounting —
+        useful for a shortcut that should only be live under some condition,
+        e.g. only while a specific tab is active:
+      </p>
+      <div class="code-window">
+        <div class="code-window-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="code-window-filename">Tab.tsx</span>
+        </div>
+        <pre
+          class="code-window-body code-window-body--numbered"
+        ><code id="enabled-example">useKeybind("cmdOrCtrl+f", openSearch, {
+  enabled: isActiveTab,
+});</code></pre>
+      </div>
+      <button
+        type="button"
+        class="copy-button"
+        data-copy-target="enabled-example"
+      >
+        Copy
+      </button>
+
+      <h2>Everything <code>.add()</code> accepts, plus a few more</h2>
+      <p>
+        <code>options</code> accepts everything the core
+        <code>.add()</code> method's own options object does —
+        <code>allowInInputElements</code>, <code>override</code>,
+        <code>description</code>, <code>scope</code> — plus
+        <code>preventRepeat</code>/<code>type</code> (mirroring
+        <code>.add()</code>'s own positional arguments), <code>enabled</code>,
+        and the constructor options that matter per binding
+        (<code>target</code>, <code>keyMode</code>,
+        <code>checkInputElements</code>, <code>debug</code>). Each
+        <code>useKeybind()</code> call owns an independent
+        <code>BindKeyboard</code> instance, so there's no shared, app-wide
+        instance to configure elsewhere — see
+        <a href="./modal-shortcuts.html">scoping shortcuts inside a modal</a>
+        for a pattern built entirely out of the <code>scope</code> option.
+      </p>
+
+      <h2>Why this is SSR-safe automatically</h2>
+      <p>
+        Registration only ever happens inside <code>useEffect</code>, which
+        React never runs during server rendering — so the DOM-touching
+        <code>BindKeyboard</code> instance underneath simply never gets
+        created on the server at all. There's no special SSR mode to opt
+        into; it falls out of how the hook is built. See
+        <a href="./nextjs-ssr.html">keyboard shortcuts in Next.js</a> for the
+        framework-specific details (App Router's <code>"use client"</code>,
+        Pages Router).
+      </p>
+    </main>
+
+    <footer class="recipe-footer">
+      <p>
+        <a href="/">← Back to the bind-keyboard demo</a> ·
+        <a href="./">More recipes</a>
+      </p>
+    </footer>
+
+    <script type="module" src="./recipe.ts"></script>
+  </body>
+</html>

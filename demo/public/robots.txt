@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://bind-keyboard.vladislav-pavlikov.ru/sitemap.xml

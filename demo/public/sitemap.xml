@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://bind-keyboard.vladislav-pavlikov.ru/</loc>
+  </url>
+  <url>
+    <loc>https://bind-keyboard.vladislav-pavlikov.ru/recipes/</loc>
+  </url>
+  <url>
+    <loc>https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook.html</loc>
+  </url>
+  <url>
+    <loc>https://bind-keyboard.vladislav-pavlikov.ru/recipes/nextjs-ssr.html</loc>
+  </url>
+  <url>
+    <loc>https://bind-keyboard.vladislav-pavlikov.ru/recipes/command-palette.html</loc>
+  </url>
+  <url>
+    <loc>https://bind-keyboard.vladislav-pavlikov.ru/recipes/modal-shortcuts.html</loc>
+  </url>
+  <url>
+    <loc>https://bind-keyboard.vladislav-pavlikov.ru/recipes/vim-gmail-sequences.html</loc>
+  </url>
+  <url>
+    <loc>https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js.html</loc>
+  </url>
+</urlset>

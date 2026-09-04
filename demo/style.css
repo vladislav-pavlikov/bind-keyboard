@@ -950,3 +950,157 @@ kbd {
     min-width: 0;
   }
 }
+
+/* --- Recipe pages ------------------------------------------------------- */
+/* Shared by every demo/recipes/*.html page — long-form prose, unlike the
+   rest of this stylesheet which is almost entirely the interactive demo's
+   own widgets. Reuses .page-header, .code-window, .copy-button, .features
+   as-is (same visual language, no separate theme for these pages). */
+
+.recipe-nav {
+  max-width: 720px;
+  margin: 0 auto 8px;
+}
+
+.recipe-nav a {
+  color: var(--text-dim);
+  font: 13px var(--mono);
+  text-decoration: none;
+}
+
+.recipe-nav a:hover {
+  color: var(--accent);
+}
+
+.recipe-article {
+  max-width: 720px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+.recipe-article h1 {
+  font-size: 28px;
+  margin: 8px 0 4px;
+}
+
+.recipe-article .recipe-dek {
+  color: var(--text-dim);
+  font-size: 16px;
+  margin: 0 0 32px;
+}
+
+.recipe-article h2 {
+  font-size: 20px;
+  margin: 40px 0 12px;
+  border-top: 1px solid var(--key-border);
+  padding-top: 24px;
+}
+
+.recipe-article h2:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.recipe-article h3 {
+  font-size: 16px;
+  margin: 24px 0 8px;
+}
+
+.recipe-article p,
+.recipe-article li {
+  color: var(--text);
+}
+
+.recipe-article ul,
+.recipe-article ol {
+  padding-left: 22px;
+}
+
+.recipe-article li + li {
+  margin-top: 6px;
+}
+
+.recipe-article code {
+  font: 0.9em var(--mono);
+  background: var(--key);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.recipe-article .code-sample {
+  margin: 16px auto 24px;
+  padding: 16px 20px;
+}
+
+.recipe-article a {
+  color: var(--accent);
+}
+
+.recipe-footer {
+  max-width: 720px;
+  margin: 48px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--key-border);
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.recipe-footer a {
+  color: var(--accent);
+}
+
+.recipe-index-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.recipe-index-list a {
+  display: block;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: box-shadow 120ms ease;
+}
+
+.recipe-index-list a:hover {
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.recipe-index-list h3 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.recipe-index-list p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.recipe-article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 24px;
+  font-size: 14px;
+}
+
+.recipe-article th,
+.recipe-article td {
+  text-align: left;
+  padding: 8px 12px;
+  border: 1px solid var(--key-border);
+  vertical-align: top;
+}
+
+.recipe-article th {
+  background: var(--panel);
+  color: var(--text-dim);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}

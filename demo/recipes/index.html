@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bind-keyboard Recipes — Guides for Keyboard Shortcuts in JS/TS</title>
+    <meta
+      name="description"
+      content="Practical guides for building keyboard shortcuts with bind-keyboard: the React hook, Next.js/SSR, command palettes, modal-scoped shortcuts, Vim/Gmail-style sequences, and migrating from Mousetrap or hotkeys-js."
+    />
+    <link
+      rel="canonical"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/"
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="bind-keyboard" />
+    <meta
+      property="og:url"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/"
+    />
+    <meta
+      property="og:title"
+      content="bind-keyboard Recipes — Guides for Keyboard Shortcuts in JS/TS"
+    />
+    <meta
+      property="og:description"
+      content="Practical guides for building keyboard shortcuts with bind-keyboard: the React hook, Next.js/SSR, command palettes, modal-scoped shortcuts, Vim/Gmail-style sequences, and migrating from Mousetrap or hotkeys-js."
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
+    />
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="page-header-row">
+        <h1><a href="/" style="color: inherit; text-decoration: none"
+          >bind-keyboard</a
+        ></h1>
+        <div class="header-links">
+          <a
+            class="header-link"
+            href="https://www.npmjs.com/package/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >npm ↗</a
+          >
+          <a
+            class="header-link"
+            href="https://github.com/vladislav-pavlikov/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub ↗</a
+          >
+        </div>
+      </div>
+      <p class="subtitle">Recipes — practical, copy-pasteable guides.</p>
+    </header>
+
+    <main class="recipe-article">
+      <ul class="recipe-index-list">
+        <li>
+          <a href="./react-hook.html">
+            <h3>React keyboard shortcuts: the useKeybind hook</h3>
+            <p>
+              Register a shortcut in one line, no manual useEffect/cleanup,
+              no stale closures, inherently SSR-safe.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./nextjs-ssr.html">
+            <h3>Keyboard shortcuts in Next.js, SSR-safe</h3>
+            <p>
+              App Router and Pages Router, without a "window is not defined"
+              crash during server rendering.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./command-palette.html">
+            <h3>Building a Cmd/Ctrl+K command palette</h3>
+            <p>
+              The cross-platform modifier alias, a dedicated scope, and
+              closing on Escape while a search input is focused.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./modal-shortcuts.html">
+            <h3>Keyboard shortcuts inside a modal (and only there)</h3>
+            <p>
+              Scoping bindings so background shortcuts can't fire behind an
+              open dialog.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./vim-gmail-sequences.html">
+            <h3>Vim and Gmail-style key sequences</h3>
+            <p>
+              Press <code>g</code> then <code>g</code> — sequences,
+              timeouts, and how ambiguous sequences are resolved.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./migrating-from-mousetrap-hotkeys-js.html">
+            <h3>Migrating from Mousetrap or hotkeys-js</h3>
+            <p>
+              API mapping, what changes, and the one thing (simultaneous
+              multi-key chords) that has no direct equivalent.
+            </p>
+          </a>
+        </li>
+      </ul>
+    </main>
+
+    <footer class="recipe-footer">
+      <p><a href="/">← Back to the bind-keyboard demo</a></p>
+    </footer>
+  </body>
+</html>

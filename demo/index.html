@@ -122,7 +122,7 @@
                 "name": "Does bind-keyboard interfere with typing in input fields?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Not unless you opt in. Setting checkInputElements: true on the constructor suppresses bindings while a text field, textarea, select, or contenteditable element is focused, with a per-binding allowInInputElements: true override for shortcuts like Escape that should still fire."
+                  "text": "Not by default. checkInputElements defaults to true, which suppresses bindings while a text field, textarea, select, or contenteditable element is focused, with a per-binding allowInInputElements: true override for shortcuts like Escape that should still fire. Pass checkInputElements: false to disable this and fire bindings while typing too."
                 }
               },
               {
@@ -144,6 +144,7 @@
       <div class="page-header-row">
         <h1>bind-keyboard</h1>
         <div class="header-links">
+          <a class="header-link" href="/recipes/">Recipes</a>
           <a
             class="header-link"
             href="https://www.npmjs.com/package/bind-keyboard"

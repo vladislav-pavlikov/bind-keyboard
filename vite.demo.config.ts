@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 // Separate from vite.config.ts (which builds the published library in
@@ -21,5 +22,40 @@ export default defineConfig({
   build: {
     outDir: "../public",
     emptyOutDir: true,
+    // Multi-page build: the main demo plus every SEO recipe page under
+    // demo/recipes/ (real, individually-indexable HTML pages — see each
+    // recipe's own <title>/description/canonical — rather than one big
+    // page or client-side-routed sections that would need JS to crawl).
+    // Vite's default (a single demo/index.html entry) only covers the
+    // first of these.
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL("./demo/index.html", import.meta.url)),
+        recipesIndex: fileURLToPath(
+          new URL("./demo/recipes/index.html", import.meta.url),
+        ),
+        reactHook: fileURLToPath(
+          new URL("./demo/recipes/react-hook.html", import.meta.url),
+        ),
+        nextjsSsr: fileURLToPath(
+          new URL("./demo/recipes/nextjs-ssr.html", import.meta.url),
+        ),
+        commandPalette: fileURLToPath(
+          new URL("./demo/recipes/command-palette.html", import.meta.url),
+        ),
+        modalShortcuts: fileURLToPath(
+          new URL("./demo/recipes/modal-shortcuts.html", import.meta.url),
+        ),
+        vimGmailSequences: fileURLToPath(
+          new URL("./demo/recipes/vim-gmail-sequences.html", import.meta.url),
+        ),
+        migratingFromMousetrapHotkeysJs: fileURLToPath(
+          new URL(
+            "./demo/recipes/migrating-from-mousetrap-hotkeys-js.html",
+            import.meta.url,
+          ),
+        ),
+      },
+    },
   },
 });

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vim and Gmail-Style Key Sequences | bind-keyboard</title>
+    <meta
+      name="description"
+      content="How to register Vim/Gmail-style key sequences (press g, then g) with bind-keyboard: syntax, timeouts, auto-repeat handling, and how conflicting sequences are resolved."
+    />
+    <link
+      rel="canonical"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/vim-gmail-sequences.html"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="bind-keyboard" />
+    <meta
+      property="og:url"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/vim-gmail-sequences.html"
+    />
+    <meta
+      property="og:title"
+      content="Vim and Gmail-Style Key Sequences"
+    />
+    <meta
+      property="og:description"
+      content="How to register Vim/Gmail-style key sequences (press g, then g) with bind-keyboard: syntax, timeouts, auto-repeat handling, and how conflicting sequences are resolved."
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
+    />
+    <link rel="stylesheet" href="../style.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Vim and Gmail-Style Key Sequences",
+        "description": "How to register Vim/Gmail-style key sequences (press g, then g) with bind-keyboard: syntax, timeouts, auto-repeat handling, and how conflicting sequences are resolved.",
+        "author": { "@type": "Person", "name": "Vladislav Pavlikov" },
+        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/vim-gmail-sequences.html"
+      }
+    </script>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="page-header-row">
+        <h1><a href="/" style="color: inherit; text-decoration: none"
+          >bind-keyboard</a
+        ></h1>
+        <div class="header-links">
+          <a
+            class="header-link"
+            href="https://www.npmjs.com/package/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >npm ↗</a
+          >
+          <a
+            class="header-link"
+            href="https://github.com/vladislav-pavlikov/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub ↗</a
+          >
+        </div>
+      </div>
+    </header>
+    <nav class="recipe-nav"><a href="./">← All recipes</a></nav>
+
+    <main class="recipe-article">
+      <h1>Vim and Gmail-style key sequences</h1>
+      <p class="recipe-dek">
+        <code>g</code> then <code>g</code> to jump to the top, <code>g</code>
+        then <code>i</code> to go to the inbox — a sequence is a different
+        thing from a chord, and needs its own syntax and its own rules for
+        what counts as "pressed in order."
+      </p>
+
+      <h2>Sequence vs. chord</h2>
+      <p>
+        A <strong>chord</strong> (<code>"ctrl+a"</code>) is keys held down
+        <em>together</em>, resolved from a single <code>KeyboardEvent</code>.
+        A <strong>sequence</strong> (<code>"g,o"</code>) is keys pressed
+        <em>one after another</em>, within a timeout of each other — two
+        completely different things bind-keyboard represents with two
+        different syntaxes rather than overloading one.
+      </p>
+
+      <h2>Registering a sequence</h2>
+      <p>
+        A comma-separated key combination string is a sequence — its
+        callback only fires once every step is pressed in order, within
+        <code>sequenceTimeout</code> ms of each other (a constructor option,
+        1000ms by default):
+      </p>
+      <div class="code-window">
+        <div class="code-window-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="code-window-filename">shortcuts.ts</span>
+        </div>
+        <pre
+          class="code-window-body code-window-body--numbered"
+        ><code id="basic-example">import { BindKeyboard } from "bind-keyboard";
+
+const bindKeyboard = new BindKeyboard({ sequenceTimeout: 1000 });
+
+bindKeyboard.add("g,g", () => window.scrollTo({ top: 0 }));
+bindKeyboard.add("g,i", goToInbox);</code></pre>
+      </div>
+      <button type="button" class="copy-button" data-copy-target="basic-example">
+        Copy
+      </button>
+
+      <h2>A literal comma is unambiguous</h2>
+      <p>
+        A comma right after a <code>+</code> is a literal comma key, not a
+        separator — so <code>"ctrl+,"</code> (a real Ctrl+Comma binding, e.g.
+        "open settings") and <code>"ctrl+,,g"</code> (a two-step sequence:
+        Ctrl+Comma, then <code>g</code>) are never ambiguous with each
+        other.
+      </p>
+
+      <h2>Holding a key doesn't complete a same-key sequence</h2>
+      <p>
+        OS key auto-repeat (holding <code>g</code> down, which fires
+        repeated <code>keydown</code>s for the same physical press) is
+        ignored for sequence matching — so simply holding <code>g</code>
+        doesn't accidentally complete <code>"g,g"</code> on its own. It has
+        to be released and pressed again for real.
+      </p>
+
+      <h2>Two sequences that could both complete on the same press</h2>
+      <p>
+        Registering both <code>"g,o"</code> and <code>"g,o,x"</code> means a
+        press of <code>g</code> then <code>o</code> completes the first
+        while the second is still legitimately pending on the same
+        prefix — an ambiguous case most libraries resolve by picking
+        whichever one arbitrarily. bind-keyboard fires
+        <strong>neither</strong> in that instant, with a <code>debug</code>
+        -only warning naming both, rather than guessing which one you meant:
+      </p>
+      <div class="code-window">
+        <div class="code-window-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="code-window-filename">shortcuts.ts</span>
+        </div>
+        <pre
+          class="code-window-body code-window-body--numbered"
+        ><code id="conflict-example">bindKeyboard.add("g,o", goToOverview);
+bindKeyboard.add("g,o,x", goToOverviewExtended);
+// Pressing g, then o: neither fires yet (ambiguous).
+// Pressing x next: "g,o,x" is no longer ambiguous — it fires.</code></pre>
+      </div>
+      <button
+        type="button"
+        class="copy-button"
+        data-copy-target="conflict-example"
+      >
+        Copy
+      </button>
+
+      <h2>Letting a plain binding wait to see if it's part of a sequence</h2>
+      <p>
+        By default, a plain binding and a sequence sharing a starting key
+        (<code>"g"</code> and <code>"g,o"</code>) coexist — the plain one
+        fires immediately, same as always. The per-binding option
+        <code>{ deferForSequence: true }</code> opts a plain binding out of
+        that: it waits up to <code>sequenceTimeout</code> to see whether the
+        press was the start of a sequence, firing only if it wasn't (as soon
+        as that's known, not necessarily the full timeout):
+      </p>
+      <div class="code-window">
+        <div class="code-window-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="code-window-filename">shortcuts.ts</span>
+        </div>
+        <pre
+          class="code-window-body code-window-body--numbered"
+        ><code id="defer-example">bindKeyboard.add("g", showGoToMenuHint, true, "keydown", {
+  deferForSequence: true,
+});
+bindKeyboard.add("g,i", goToInbox);</code></pre>
+      </div>
+      <button
+        type="button"
+        class="copy-button"
+        data-copy-target="defer-example"
+      >
+        Copy
+      </button>
+
+      <h2>Scoped and input-safe like any other binding</h2>
+      <p>
+        Sequences support everything a plain binding does —
+        <code>scope</code>, <code>allowInInputElements</code>,
+        <code>description</code>, <code>override: false</code> — so a
+        sequence can be scoped to a modal exactly the way described in
+        <a href="./modal-shortcuts.html">keyboard shortcuts inside a modal</a>.
+      </p>
+
+      <h2>Related</h2>
+      <p>
+        <a href="./migrating-from-mousetrap-hotkeys-js.html"
+          >Migrating from Mousetrap or hotkeys-js</a
+        >
+        · <a href="./modal-shortcuts.html">Keyboard shortcuts inside a modal</a>
+      </p>
+    </main>
+
+    <footer class="recipe-footer">
+      <p>
+        <a href="/">← Back to the bind-keyboard demo</a> ·
+        <a href="./">More recipes</a>
+      </p>
+    </footer>
+
+    <script type="module" src="./recipe.ts"></script>
+  </body>
+</html>

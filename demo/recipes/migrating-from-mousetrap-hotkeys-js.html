@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Migrating from Mousetrap or hotkeys-js | bind-keyboard</title>
+    <meta
+      name="description"
+      content="An API mapping for migrating from Mousetrap or hotkeys-js to bind-keyboard — bind/unbind/sequences/scopes equivalents, and the one thing (simultaneous multi-key chords) that has no direct equivalent."
+    />
+    <link
+      rel="canonical"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js.html"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="bind-keyboard" />
+    <meta
+      property="og:url"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js.html"
+    />
+    <meta
+      property="og:title"
+      content="Migrating from Mousetrap or hotkeys-js"
+    />
+    <meta
+      property="og:description"
+      content="An API mapping for migrating from Mousetrap or hotkeys-js to bind-keyboard — bind/unbind/sequences/scopes equivalents, and the one thing (simultaneous multi-key chords) that has no direct equivalent."
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
+    />
+    <link rel="stylesheet" href="../style.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Migrating from Mousetrap or hotkeys-js",
+        "description": "An API mapping for migrating from Mousetrap or hotkeys-js to bind-keyboard — bind/unbind/sequences/scopes equivalents, and the one thing (simultaneous multi-key chords) that has no direct equivalent.",
+        "author": { "@type": "Person", "name": "Vladislav Pavlikov" },
+        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js.html"
+      }
+    </script>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="page-header-row">
+        <h1><a href="/" style="color: inherit; text-decoration: none"
+          >bind-keyboard</a
+        ></h1>
+        <div class="header-links">
+          <a
+            class="header-link"
+            href="https://www.npmjs.com/package/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >npm ↗</a
+          >
+          <a
+            class="header-link"
+            href="https://github.com/vladislav-pavlikov/bind-keyboard"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub ↗</a
+          >
+        </div>
+      </div>
+    </header>
+    <nav class="recipe-nav"><a href="./">← All recipes</a></nav>
+
+    <main class="recipe-article">
+      <h1>Migrating from Mousetrap or hotkeys-js</h1>
+      <p class="recipe-dek">
+        Both are solid, long-running libraries — this isn't "they're bad,
+        switch." It's an API mapping for when you specifically want
+        first-class TypeScript, scopes, a React hook, or SSR-safety without
+        writing the glue yourself, plus the one thing that doesn't carry
+        over cleanly either way.
+      </p>
+
+      <h2>From Mousetrap</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Mousetrap</th>
+            <th>bind-keyboard</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Mousetrap.bind('ctrl+a', fn)</code></td>
+            <td><code>bindKeyboard.add('ctrl+a', fn)</code></td>
+          </tr>
+          <tr>
+            <td><code>Mousetrap.unbind('ctrl+a')</code></td>
+            <td><code>bindKeyboard.remove('ctrl+a')</code></td>
+          </tr>
+          <tr>
+            <td><code>Mousetrap.bind('g i', fn)</code> (sequence)</td>
+            <td><code>bindKeyboard.add('g,i', fn)</code> (comma, not space)</td>
+          </tr>
+          <tr>
+            <td><code>Mousetrap.reset()</code></td>
+            <td><code>bindKeyboard.removeAll()</code></td>
+          </tr>
+          <tr>
+            <td>no built-in scopes</td>
+            <td><code>{ scope: 'modal' }</code> + <code>enableScope</code>/<code>disableScope</code></td>
+          </tr>
+          <tr>
+            <td>no built-in React hook</td>
+            <td><code>useKeybind</code> (<code>bind-keyboard/react</code>)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        The one-argument shorthand carries over almost verbatim; the biggest
+        real difference is the sequence separator (comma, not space) and
+        that <code>type</code> is an explicit argument rather than inferred.
+      </p>
+
+      <h2>From hotkeys-js</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>hotkeys-js</th>
+            <th>bind-keyboard</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>hotkeys('ctrl+a', fn)</code></td>
+            <td><code>bindKeyboard.add('ctrl+a', fn)</code></td>
+          </tr>
+          <tr>
+            <td><code>hotkeys.unbind('ctrl+a')</code></td>
+            <td><code>bindKeyboard.remove('ctrl+a')</code></td>
+          </tr>
+          <tr>
+            <td><code>hotkeys.setScope('modal')</code> (one global scope)</td>
+            <td><code>bindKeyboard.enableScope('modal')</code> (several can be active at once)</td>
+          </tr>
+          <tr>
+            <td><code>hotkeys.filter = (event) => ...</code></td>
+            <td><code>checkInputElements</code> + per-binding <code>allowInInputElements</code></td>
+          </tr>
+          <tr>
+            <td>no temporal sequences</td>
+            <td><code>bindKeyboard.add('g,i', fn)</code> — see the <a href="./vim-gmail-sequences.html">sequences recipe</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        The scope model is the real behavioral difference to know about:
+        hotkeys-js has exactly one active scope at a time (switching to a
+        new one deactivates the old), while bind-keyboard can have several
+        scopes active simultaneously (each independently
+        enabled/disabled), plus an always-on unscoped tier underneath all of
+        them.
+      </p>
+
+      <h2>The one thing with no direct equivalent</h2>
+      <p>
+        hotkeys-js supports <code>hotkeys('ctrl+a+s', fn)</code> — a real
+        simultaneous chord of <em>two</em> non-modifier keys held together,
+        via its own tracked set of currently-held keys across separate
+        <code>keydown</code>/<code>keyup</code> events. bind-keyboard
+        resolves every combination from a single <code>KeyboardEvent</code>,
+        which only ever carries one non-modifier key at a time (plus its
+        four modifier flags) — so a string like
+        <code>"ctrl+a+s"</code> throws a <code>KeybindError</code> here
+        instead of silently mismatching. If you're migrating a binding like
+        that, the closest equivalents are a
+        <a href="./vim-gmail-sequences.html">sequence</a> (if pressing them
+        one after another is acceptable) or two separate bindings for
+        whatever the actual intent was.
+      </p>
+
+      <h2>Related</h2>
+      <p>
+        <a href="./vim-gmail-sequences.html">Vim and Gmail-style key sequences</a>
+        · <a href="./react-hook.html">React keyboard shortcuts: the useKeybind hook</a>
+        · <a href="./modal-shortcuts.html">Keyboard shortcuts inside a modal</a>
+      </p>
+    </main>
+
+    <footer class="recipe-footer">
+      <p>
+        <a href="/">← Back to the bind-keyboard demo</a> ·
+        <a href="./">More recipes</a>
+      </p>
+    </footer>
+
+    <script type="module" src="./recipe.ts"></script>
+  </body>
+</html>
