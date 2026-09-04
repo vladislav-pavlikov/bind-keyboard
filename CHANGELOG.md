@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+Fixed:
+
+- **Restored `"sideEffects": false`**, so bundlers can tree-shake the package again. 1.0.0 shipped it as `["./demo/**"]` — an exception carved out for this repo's own demo, which imports one module purely for its side effects. That array form turned out to cost consumers real optimization: Bun's bundler warns `wildcard sideEffects are not supported yet, which means this package will be deoptimized` and treats the whole package as side-effectful, and third-party analyzers (bundlephobia et al.) likewise downgrade it from "fully tree-shakeable". The demo's exception now lives in its own `demo/package.json` instead — bundlers resolve `sideEffects` from the nearest `package.json`, so the demo keeps building correctly while the published package goes back to a plain `false`. No runtime behavior changed; `dist/` is byte-identical to 1.0.0.
+
 ## 1.0.0
 
 Breaking changes from `0.1.0`:

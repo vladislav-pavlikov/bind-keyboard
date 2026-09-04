@@ -1,0 +1,8 @@
+{
+  "name": "bind-keyboard-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "//": "Exists only so bundlers resolve sideEffects for demo/** from here rather than from the repo root. The root package.json is the published library and declares \"sideEffects\": false, which is true of src/** but not of this demo: demo/main.ts imports ./movement-game purely for its side effects, and a false declaration at the root silently tree-shook that whole module out of the production build. Declaring it true here scopes the exception to the demo without the root needing a wildcard array — Bun's bundler warns that wildcard sideEffects deoptimize the package entirely.",
+  "sideEffects": true
+}
