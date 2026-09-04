@@ -3,6 +3,7 @@ import type {
   KeyCombination,
   KeyCombinationConstruct,
 } from "../types";
+import KeybindError from "../classes/KeybindError";
 import getKeyCombination from "./getKeyCombination";
 import isMacPlatform from "./isMacPlatform";
 
@@ -23,6 +24,15 @@ const PUNCTUATION_TO_CODE: Record<string, string> = {
   "=": "Equal",
   "`": "Backquote",
 };
+
+// The four real modifier words a combination string can spell out — used
+// only to tell a genuine second key apart from a lone modifier acting as
+// the base key itself (e.g. "ctrl" alone, or "ctrl+shift" for tapping
+// Shift while Ctrl is held) when checking for more than one real key
+// below. Not the same list as getKeyCombination's own MODIFIER_ALIASES,
+// which also covers raw KeyboardEvent codes like "controlleft" — those
+// never appear in a hand-written combination string.
+const MODIFIER_ALIASES_SET = new Set(["ctrl", "shift", "alt", "meta"]);
 
 // Only unshifted base characters are covered — for keyMode: "code", combine
 // the base key with an explicit "shift" token (e.g. "ctrl+shift+/") rather
@@ -73,6 +83,30 @@ const keyParser = (
     // unless they're the only token present.
     const isModPressed = p.includes("cmdorctrl");
     const nonModTokens = p.filter((token) => token !== "cmdorctrl");
+
+    // A real KeyboardEvent only ever carries one non-modifier key at a time
+    // (event.key/event.code) alongside its four boolean modifier flags —
+    // there's nowhere to put a second one. Unlike hotkeys-js (which tracks
+    // its own Set of currently-held keys across separate keydown/keyup
+    // events to support chords like "ctrl+a+s"), bind-keyboard resolves a
+    // combination from a single event, so "ctrl+a+s" can never actually
+    // match. Silently keeping only the last token here (the previous
+    // behavior) registered "ctrl+s" with zero indication "a" had been
+    // dropped — throwing instead surfaces the mistake at registration time,
+    // e.g. for anyone porting a combination string over from hotkeys-js.
+    // Real modifier words are excluded here too (not just "cmdorctrl"): a
+    // lone modifier as the base key (e.g. "ctrl" by itself, or "ctrl+shift"
+    // for tapping Shift while Ctrl is held) is a legitimate, already-tested
+    // binding, not a second "real" key.
+    const realKeyTokens = nonModTokens.filter(
+      (token) => !MODIFIER_ALIASES_SET.has(token),
+    );
+    if (!literalPlusKey && realKeyTokens.length > 1) {
+      throw new KeybindError(
+        `"${keyCombination}" has more than one non-modifier key (${realKeyTokens.join(", ")}) — only one real key is matched per binding, plus modifiers. Use a sequence ("${realKeyTokens.join(",")}") or separate bindings instead.`,
+      );
+    }
+
     const [key] = literalPlusKey ? ["+"] : nonModTokens.slice(-1);
 
     return getKeyCombination(
