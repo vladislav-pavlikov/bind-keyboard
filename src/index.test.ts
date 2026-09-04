@@ -759,6 +759,22 @@ describe("Keybind Library Tests", () => {
     expect(() => BindKeyboard.getKeyCombination({})).toThrow(KeybindError);
   });
 
+  it("should throw KeybindError for a combination string with more than one non-modifier key, instead of silently keeping only the last one", () => {
+    // A real KeyboardEvent only ever carries one non-modifier key at a
+    // time (plus modifier flags) — "ctrl+a+s" (hotkeys-js style, meaning
+    // "a" and "s" both held down together) can never actually match here,
+    // unlike a plain "ctrl+shift+a" (one real key, two modifier words).
+    expect(() => bindKeyboard.add("ctrl+a+s", jest.fn())).toThrow(KeybindError);
+    expect(() => BindKeyboard.keyParser("ctrl+a+s")).toThrow(
+      /has more than one non-modifier key/u,
+    );
+
+    // A lone modifier as the base key is unaffected — it's the only token
+    // and never treated as a second "real" key.
+    expect(() => bindKeyboard.add("ctrl+shift", jest.fn())).not.toThrow();
+    expect(() => bindKeyboard.add("ctrl+shift+a", jest.fn())).not.toThrow();
+  });
+
   it("should expose keyParser and getKeyCombination as static methods", () => {
     expect(BindKeyboard.keyParser("ctrl+a")).toBe("ctrl + a");
     expect(BindKeyboard.getKeyCombination({ key: "a", ctrlKey: true })).toBe(

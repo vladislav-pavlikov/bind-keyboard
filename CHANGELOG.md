@@ -5,6 +5,7 @@
 Breaking changes from `0.1.0`:
 
 - **`checkInputElements` now defaults to `true`** (was `false`) — bindings are skipped while an input/textarea/select/contenteditable is focused unless you opt out with `checkInputElements: false`, or opt a specific binding back in with `allowInInputElements: true`. The README and demo already described "input-safe by default" as a feature; the actual default didn't match that until now. Pass `checkInputElements: false` to restore the old (pre-1.0.0) behavior.
+- **A combination string with more than one non-modifier key now throws `KeybindError`** instead of silently keeping only the last one — `.add("ctrl+a+s", cb)` previously registered `"ctrl+s"` with zero indication `"a"` had been dropped. A real `KeyboardEvent` only ever carries one non-modifier key at a time, so a combo like this (multiple simultaneous non-modifier keys, as in hotkeys-js) could never actually have matched anyway; it just used to fail silently instead of loudly. `"ctrl+shift+a"` (any number of modifier words plus one real key) is unaffected.
 
 New features:
 
