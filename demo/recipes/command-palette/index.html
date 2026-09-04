@@ -19,10 +19,7 @@
       property="og:url"
       content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/command-palette/"
     />
-    <meta
-      property="og:title"
-      content="Building a Cmd/Ctrl+K Command Palette"
-    />
+    <meta property="og:title" content="Building a Cmd/Ctrl+K Command Palette" />
     <meta
       property="og:description"
       content="How to build a Cmd/Ctrl+K command palette: the cross-platform cmdOrCtrl modifier, a dedicated scope, and an Escape binding that still closes it while its own search input is focused."
@@ -48,9 +45,11 @@
   <body>
     <header class="page-header">
       <div class="page-header-row">
-        <h1><a href="/" style="color: inherit; text-decoration: none"
-          >bind-keyboard</a
-        ></h1>
+        <h1>
+          <a href="/" style="color: inherit; text-decoration: none"
+            >bind-keyboard</a
+          >
+        </h1>
         <div class="header-links">
           <a
             class="header-link"
@@ -74,28 +73,29 @@
     <main class="recipe-article">
       <h1>Building a Cmd/Ctrl+K command palette</h1>
       <p class="recipe-dek">
-        One binding to open it on both platforms, a scope so nothing else
-        fires while it's open, and an Escape that still works while its own
-        search box is focused.
+        One binding to open it on both platforms, a scope so nothing else fires
+        while it's open, and an Escape that still works while its own search box
+        is focused.
       </p>
 
       <h2>Opening it: one binding, both platforms</h2>
       <p>
-        <code>"cmdOrCtrl+k"</code> resolves to <code>metaKey</code> (⌘) on
-        Mac and <code>ctrlKey</code> everywhere else — one binding instead of
+        <code>"cmdOrCtrl+k"</code> resolves to <code>metaKey</code> (⌘) on Mac
+        and <code>ctrlKey</code> everywhere else — one binding instead of
         registering <code>["ctrl+k", "meta+k"]</code> and hoping you never
         forget the second one:
       </p>
-      <div class="code-window">
-        <div class="code-window-titlebar">
-          <span class="dot dot-red"></span>
-          <span class="dot dot-yellow"></span>
-          <span class="dot dot-green"></span>
-          <span class="code-window-filename">command-palette.ts</span>
-        </div>
-        <pre
-          class="code-window-body code-window-body--numbered"
-        ><code id="open-example">import { BindKeyboard } from "bind-keyboard";
+      <div class="code-sample">
+        <div class="code-window">
+          <div class="code-window-titlebar">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="code-window-filename">command-palette.ts</span>
+          </div>
+          <pre
+            class="code-window-body code-window-body--numbered"
+          ><code id="open-example">import { BindKeyboard } from "bind-keyboard";
 
 const bindKeyboard = new BindKeyboard();
 
@@ -103,29 +103,35 @@ bindKeyboard.add("cmdOrCtrl+k", (event) => {
   event.preventDefault(); // Chrome/Firefox's own bookmark-search shortcut
   openPalette();
 });</code></pre>
+        </div>
+        <button
+          type="button"
+          class="copy-button"
+          data-copy-target="open-example"
+        >
+          Copy
+        </button>
       </div>
-      <button type="button" class="copy-button" data-copy-target="open-example">
-        Copy
-      </button>
 
       <h2>Pause everything else while it's open</h2>
       <p>
         A palette is a full-screen overlay — background shortcuts firing
-        underneath it while the user is typing a command is exactly the kind
-        of bug a scope exists to prevent. Tag every app-level binding you
-        want suspended with <code>{ scope: "app" }</code>, then flip it off
-        for as long as the palette is open:
+        underneath it while the user is typing a command is exactly the kind of
+        bug a scope exists to prevent. Tag every app-level binding you want
+        suspended with <code>{ scope: "app" }</code>, then flip it off for as
+        long as the palette is open:
       </p>
-      <div class="code-window">
-        <div class="code-window-titlebar">
-          <span class="dot dot-red"></span>
-          <span class="dot dot-yellow"></span>
-          <span class="dot dot-green"></span>
-          <span class="code-window-filename">command-palette.ts</span>
-        </div>
-        <pre
-          class="code-window-body code-window-body--numbered"
-        ><code id="scope-example">bindKeyboard.add("cmdOrCtrl+s", save, true, "keydown", {
+      <div class="code-sample">
+        <div class="code-window">
+          <div class="code-window-titlebar">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="code-window-filename">command-palette.ts</span>
+          </div>
+          <pre
+            class="code-window-body code-window-body--numbered"
+          ><code id="scope-example">bindKeyboard.add("cmdOrCtrl+s", save, true, "keydown", {
   scope: "app",
 });
 
@@ -138,10 +144,15 @@ function closePalette() {
   paletteEl.hidden = true;
   bindKeyboard.enableScope("app");
 }</code></pre>
+        </div>
+        <button
+          type="button"
+          class="copy-button"
+          data-copy-target="scope-example"
+        >
+          Copy
+        </button>
       </div>
-      <button type="button" class="copy-button" data-copy-target="scope-example">
-        Copy
-      </button>
       <p>
         The <code>"cmdOrCtrl+k"</code> binding that opens the palette stays
         unscoped, so it isn't affected by this — only the bindings you
@@ -152,51 +163,54 @@ function closePalette() {
 
       <h2>Escape needs to work while the search box is focused</h2>
       <p>
-        The palette almost certainly has its own text input for fuzzy
-        search — and <code>checkInputElements</code> defaults to
-        <code>true</code>, meaning bindings are suppressed while any
-        input/textarea/contenteditable is focused. That's the right default
-        for most shortcuts, but Escape closing the palette is exactly the
-        exception <code>allowInInputElements</code> exists for:
+        The palette almost certainly has its own text input for fuzzy search —
+        and <code>checkInputElements</code> defaults to <code>true</code>,
+        meaning bindings are suppressed while any input/textarea/contenteditable
+        is focused. That's the right default for most shortcuts, but Escape
+        closing the palette is exactly the exception
+        <code>allowInInputElements</code> exists for:
       </p>
-      <div class="code-window">
-        <div class="code-window-titlebar">
-          <span class="dot dot-red"></span>
-          <span class="dot dot-yellow"></span>
-          <span class="dot dot-green"></span>
-          <span class="code-window-filename">command-palette.ts</span>
-        </div>
-        <pre
-          class="code-window-body code-window-body--numbered"
-        ><code id="escape-example">bindKeyboard.add("escape", closePalette, true, "keydown", {
+      <div class="code-sample">
+        <div class="code-window">
+          <div class="code-window-titlebar">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="code-window-filename">command-palette.ts</span>
+          </div>
+          <pre
+            class="code-window-body code-window-body--numbered"
+          ><code id="escape-example">bindKeyboard.add("escape", closePalette, true, "keydown", {
   allowInInputElements: true,
 });</code></pre>
+        </div>
+        <button
+          type="button"
+          class="copy-button"
+          data-copy-target="escape-example"
+        >
+          Copy
+        </button>
       </div>
-      <button
-        type="button"
-        class="copy-button"
-        data-copy-target="escape-example"
-      >
-        Copy
-      </button>
 
       <h2>Arrow keys to move the selection</h2>
       <p>
         The palette's own up/down navigation and Enter-to-run also need
         <code>allowInInputElements: true</code> for the same reason — they're
-        meant to work while focus is in the search box, which is the whole
-        point of a palette:
+        meant to work while focus is in the search box, which is the whole point
+        of a palette:
       </p>
-      <div class="code-window">
-        <div class="code-window-titlebar">
-          <span class="dot dot-red"></span>
-          <span class="dot dot-yellow"></span>
-          <span class="dot dot-green"></span>
-          <span class="code-window-filename">command-palette.ts</span>
-        </div>
-        <pre
-          class="code-window-body code-window-body--numbered"
-        ><code id="nav-example">bindKeyboard.add("arrowdown", selectNext, true, "keydown", {
+      <div class="code-sample">
+        <div class="code-window">
+          <div class="code-window-titlebar">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="code-window-filename">command-palette.ts</span>
+          </div>
+          <pre
+            class="code-window-body code-window-body--numbered"
+          ><code id="nav-example">bindKeyboard.add("arrowdown", selectNext, true, "keydown", {
   allowInInputElements: true,
 });
 bindKeyboard.add("arrowup", selectPrevious, true, "keydown", {
@@ -205,15 +219,23 @@ bindKeyboard.add("arrowup", selectPrevious, true, "keydown", {
 bindKeyboard.add("enter", runSelected, true, "keydown", {
   allowInInputElements: true,
 });</code></pre>
+        </div>
+        <button
+          type="button"
+          class="copy-button"
+          data-copy-target="nav-example"
+        >
+          Copy
+        </button>
       </div>
-      <button type="button" class="copy-button" data-copy-target="nav-example">
-        Copy
-      </button>
 
       <h2>Related</h2>
       <p>
         <a href="../modal-shortcuts/">Keyboard shortcuts inside a modal</a>
-        · <a href="../react-hook/">React keyboard shortcuts: the useKeybind hook</a>
+        ·
+        <a href="../react-hook/"
+          >React keyboard shortcuts: the useKeybind hook</a
+        >
       </p>
     </main>
 

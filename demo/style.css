@@ -764,6 +764,14 @@ kbd {
   display: block;
   position: relative;
   padding-left: 2.75em;
+  /* A blank source line renders as a .code-line with zero text content —
+     its own line number (an absolutely-positioned ::before, so it doesn't
+     contribute to this element's height) would otherwise collapse this
+     whole block to zero height, overlapping its number with the adjacent
+     line's. min-height keeps every line (blank or not) the same height as
+     the surrounding text (1.6, matching .code-window-body code's own
+     font: 13px/1.6 shorthand). */
+  min-height: 1.6em;
 }
 
 .code-window-body--numbered .code-line::before {

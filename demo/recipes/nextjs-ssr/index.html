@@ -48,9 +48,11 @@
   <body>
     <header class="page-header">
       <div class="page-header-row">
-        <h1><a href="/" style="color: inherit; text-decoration: none"
-          >bind-keyboard</a
-        ></h1>
+        <h1>
+          <a href="/" style="color: inherit; text-decoration: none"
+            >bind-keyboard</a
+          >
+        </h1>
         <div class="header-links">
           <a
             class="header-link"
@@ -74,39 +76,39 @@
     <main class="recipe-article">
       <h1>Keyboard shortcuts in Next.js, SSR-safe</h1>
       <p class="recipe-dek">
-        Most keyboard-shortcut libraries assume <code>window</code> exists
-        the moment their module loads. Next.js renders that same module on
-        the server first, where it doesn't — here's how bind-keyboard
-        avoids the crash, in both routers.
+        Most keyboard-shortcut libraries assume <code>window</code> exists the
+        moment their module loads. Next.js renders that same module on the
+        server first, where it doesn't — here's how bind-keyboard avoids the
+        crash, in both routers.
       </p>
 
       <h2>The actual failure mode</h2>
       <p>
-        A library that reads <code>window</code>/<code>document</code> at
-        module scope, or inside a constructor called eagerly at render time,
-        throws a <code>ReferenceError: window is not defined</code> the
-        moment Next.js renders that component on the server — which it does
-        for every page, App Router or Pages Router, before any client-side
-        JavaScript runs at all.
+        A library that reads <code>window</code>/<code>document</code> at module
+        scope, or inside a constructor called eagerly at render time, throws a
+        <code>ReferenceError: window is not defined</code> the moment Next.js
+        renders that component on the server — which it does for every page, App
+        Router or Pages Router, before any client-side JavaScript runs at all.
       </p>
 
       <h2>App Router</h2>
       <p>
         <code>useKeybind</code> only ever touches the DOM inside a
-        <code>useEffect</code>, which the App Router's server components
-        can't run — so the component using it needs the
+        <code>useEffect</code>, which the App Router's server components can't
+        run — so the component using it needs the
         <code>"use client"</code> directive, same as any other hook:
       </p>
-      <div class="code-window">
-        <div class="code-window-titlebar">
-          <span class="dot dot-red"></span>
-          <span class="dot dot-yellow"></span>
-          <span class="dot dot-green"></span>
-          <span class="code-window-filename">app/editor/Shortcuts.tsx</span>
-        </div>
-        <pre
-          class="code-window-body code-window-body--numbered"
-        ><code id="app-router-example">"use client";
+      <div class="code-sample">
+        <div class="code-window">
+          <div class="code-window-titlebar">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="code-window-filename">app/editor/Shortcuts.tsx</span>
+          </div>
+          <pre
+            class="code-window-body code-window-body--numbered"
+          ><code id="app-router-example">"use client";
 
 import { useKeybind } from "bind-keyboard/react";
 
@@ -118,14 +120,15 @@ export function EditorShortcuts({ onSave }: { onSave: () => void }) {
 
   return null; // a pure "wire up shortcuts" component, renders nothing
 }</code></pre>
+        </div>
+        <button
+          type="button"
+          class="copy-button"
+          data-copy-target="app-router-example"
+        >
+          Copy
+        </button>
       </div>
-      <button
-        type="button"
-        class="copy-button"
-        data-copy-target="app-router-example"
-      >
-        Copy
-      </button>
       <p>
         Render it from a server component like any other client component —
         <code>EditorShortcuts</code> itself is the only part that needs the
@@ -138,16 +141,17 @@ export function EditorShortcuts({ onSave }: { onSave: () => void }) {
         client-side only, no directive needed — the same hook call works
         directly inside a page or a layout-level component:
       </p>
-      <div class="code-window">
-        <div class="code-window-titlebar">
-          <span class="dot dot-red"></span>
-          <span class="dot dot-yellow"></span>
-          <span class="dot dot-green"></span>
-          <span class="code-window-filename">pages/_app.tsx</span>
-        </div>
-        <pre
-          class="code-window-body code-window-body--numbered"
-        ><code id="pages-router-example">import type { AppProps } from "next/app";
+      <div class="code-sample">
+        <div class="code-window">
+          <div class="code-window-titlebar">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="code-window-filename">pages/_app.tsx</span>
+          </div>
+          <pre
+            class="code-window-body code-window-body--numbered"
+          ><code id="pages-router-example">import type { AppProps } from "next/app";
 import { useKeybind } from "bind-keyboard/react";
 import { useRouter } from "next/router";
 
@@ -157,34 +161,36 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return &lt;Component {...pageProps} /&gt;;
 }</code></pre>
+        </div>
+        <button
+          type="button"
+          class="copy-button"
+          data-copy-target="pages-router-example"
+        >
+          Copy
+        </button>
       </div>
-      <button
-        type="button"
-        class="copy-button"
-        data-copy-target="pages-router-example"
-      >
-        Copy
-      </button>
 
       <h2>If you're not using the React hook</h2>
       <p>
-        Constructing a plain <code>new BindKeyboard()</code> instance is
-        also safe during SSR on its own terms — with the default
-        <code>autostart: true</code>, the constructor checks whether its
-        target can actually listen (<code>addEventListener</code> exists)
-        before attaching anything, and warns instead of throwing when it
-        can't. Still, prefer constructing it inside a
-        <code>useEffect</code> (or, better, just use
-        <code>useKeybind</code> — see the
-        <a href="../react-hook/">React hook recipe</a>) rather than at
-        module scope, so it's never even attempted server-side in the first
-        place.
+        Constructing a plain <code>new BindKeyboard()</code> instance is also
+        safe during SSR on its own terms — with the default
+        <code>autostart: true</code>, the constructor checks whether its target
+        can actually listen (<code>addEventListener</code> exists) before
+        attaching anything, and warns instead of throwing when it can't. Still,
+        prefer constructing it inside a <code>useEffect</code> (or, better, just
+        use <code>useKeybind</code> — see the
+        <a href="../react-hook/">React hook recipe</a>) rather than at module
+        scope, so it's never even attempted server-side in the first place.
       </p>
 
       <h2>Related</h2>
       <p>
-        <a href="../react-hook/">React keyboard shortcuts: the useKeybind hook</a>
-        · <a href="../command-palette/">Building a Cmd/Ctrl+K command palette</a>
+        <a href="../react-hook/"
+          >React keyboard shortcuts: the useKeybind hook</a
+        >
+        ·
+        <a href="../command-palette/">Building a Cmd/Ctrl+K command palette</a>
       </p>
     </main>
 
