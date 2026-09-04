@@ -9,11 +9,15 @@
 [![types](https://img.shields.io/npm/types/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
 ![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 <!-- unpacked-size and node (engines.node) both read from whatever's
-     *currently published* on npm — until 1.0.0 actually ships, they'll
-     show 0.0.11-era numbers (node in particular will likely read "not
-     specified", since that version predates the engines field). Not
-     broken, just not this branch's own numbers yet — same caveat as the
-     version/downloads badges right above them. -->
+     *currently published* on npm, so right after a release they can lag
+     this branch by a few minutes — same caveat as the version/downloads
+     badges right above them.
+
+     unpacked-size reads large (~440kB) from 1.0.1 on because the package
+     ships sourcemaps with the original TypeScript embedded. That is not
+     what a browser downloads: maps are only fetched with devtools open,
+     so the number that actually matters is the gzip badge below (~4.5kB
+     for the whole library). -->
 
 [![unpacked size](https://img.shields.io/npm/unpacked-size/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
 [![node](https://img.shields.io/node/v/bind-keyboard)](https://www.npmjs.com/package/bind-keyboard)
