@@ -96,6 +96,7 @@
     "bundlesize": "npm run build && node scripts/check-bundle-size.mjs",
     "check-exports": "npm run build && node scripts/check-exports.mjs",
     "check-dist-behavior": "npm run build && node scripts/check-dist-behavior.mjs",
+    "check-size-claims": "npm run build && node scripts/check-size-claims.mjs",
     "demo:dev": "node scripts/generate-llms-full.mjs && vite --config vite.demo.config.ts",
     "demo:build": "node scripts/generate-llms-full.mjs && tsc -p demo/tsconfig.json && vite build --config vite.demo.config.ts",
     "pages:build": "npm run build && npm run demo:build && node scripts/write-size-badge.mjs && node scripts/write-coverage-badge.mjs"

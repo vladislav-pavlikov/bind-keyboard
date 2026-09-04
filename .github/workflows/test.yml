@@ -27,4 +27,5 @@ jobs:
       - run: npm run bundlesize
       - run: npm run check-exports
       - run: npm run check-dist-behavior
+      - run: npm run check-size-claims
       - run: npm run demo:build

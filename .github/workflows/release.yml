@@ -37,6 +37,7 @@ jobs:
       - run: npm run bundlesize
       - run: npm run check-exports
       - run: npm run check-dist-behavior
+      - run: npm run check-size-claims
 
       - uses: actions/setup-node@v6
         with:
