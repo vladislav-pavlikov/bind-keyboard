@@ -10,14 +10,14 @@
     />
     <link
       rel="canonical"
-      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook.html"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook/"
     />
 
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="bind-keyboard" />
     <meta
       property="og:url"
-      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook.html"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook/"
     />
     <meta
       property="og:title"
@@ -32,7 +32,7 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
     />
-    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../../style.css" />
 
     <script type="application/ld+json">
       {
@@ -41,7 +41,7 @@
         "headline": "React Keyboard Shortcuts: the useKeybind Hook",
         "description": "How to add keyboard shortcuts to a React component with bind-keyboard's useKeybind hook — no manual useEffect/cleanup, no stale closures, SSR-safe by construction.",
         "author": { "@type": "Person", "name": "Vladislav Pavlikov" },
-        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook.html"
+        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/react-hook/"
       }
     </script>
   </head>
@@ -69,7 +69,7 @@
         </div>
       </div>
     </header>
-    <nav class="recipe-nav"><a href="./">← All recipes</a></nav>
+    <nav class="recipe-nav"><a href="../">← All recipes</a></nav>
 
     <main class="recipe-article">
       <h1>React keyboard shortcuts: the useKeybind hook</h1>
@@ -190,7 +190,7 @@ function SaveButton({ onSave }: { onSave: () => void }) {
         <code>useKeybind()</code> call owns an independent
         <code>BindKeyboard</code> instance, so there's no shared, app-wide
         instance to configure elsewhere — see
-        <a href="./modal-shortcuts.html">scoping shortcuts inside a modal</a>
+        <a href="../modal-shortcuts/">scoping shortcuts inside a modal</a>
         for a pattern built entirely out of the <code>scope</code> option.
       </p>
 
@@ -201,7 +201,7 @@ function SaveButton({ onSave }: { onSave: () => void }) {
         <code>BindKeyboard</code> instance underneath simply never gets
         created on the server at all. There's no special SSR mode to opt
         into; it falls out of how the hook is built. See
-        <a href="./nextjs-ssr.html">keyboard shortcuts in Next.js</a> for the
+        <a href="../nextjs-ssr/">keyboard shortcuts in Next.js</a> for the
         framework-specific details (App Router's <code>"use client"</code>,
         Pages Router).
       </p>
@@ -210,10 +210,10 @@ function SaveButton({ onSave }: { onSave: () => void }) {
     <footer class="recipe-footer">
       <p>
         <a href="/">← Back to the bind-keyboard demo</a> ·
-        <a href="./">More recipes</a>
+        <a href="../">More recipes</a>
       </p>
     </footer>
 
-    <script type="module" src="./recipe.ts"></script>
+    <script type="module" src="../recipe.ts"></script>
   </body>
 </html>

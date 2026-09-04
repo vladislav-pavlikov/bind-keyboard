@@ -10,14 +10,14 @@
     />
     <link
       rel="canonical"
-      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/command-palette.html"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/command-palette/"
     />
 
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="bind-keyboard" />
     <meta
       property="og:url"
-      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/command-palette.html"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/command-palette/"
     />
     <meta
       property="og:title"
@@ -32,7 +32,7 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
     />
-    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../../style.css" />
 
     <script type="application/ld+json">
       {
@@ -41,7 +41,7 @@
         "headline": "Building a Cmd/Ctrl+K Command Palette",
         "description": "How to build a Cmd/Ctrl+K command palette: the cross-platform cmdOrCtrl modifier, a dedicated scope, and an Escape binding that still closes it while its own search input is focused.",
         "author": { "@type": "Person", "name": "Vladislav Pavlikov" },
-        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/command-palette.html"
+        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/command-palette/"
       }
     </script>
   </head>
@@ -69,7 +69,7 @@
         </div>
       </div>
     </header>
-    <nav class="recipe-nav"><a href="./">← All recipes</a></nav>
+    <nav class="recipe-nav"><a href="../">← All recipes</a></nav>
 
     <main class="recipe-article">
       <h1>Building a Cmd/Ctrl+K command palette</h1>
@@ -146,7 +146,7 @@ function closePalette() {
         The <code>"cmdOrCtrl+k"</code> binding that opens the palette stays
         unscoped, so it isn't affected by this — only the bindings you
         explicitly tag are. See
-        <a href="./modal-shortcuts.html">shortcuts inside a modal</a> for the
+        <a href="../modal-shortcuts/">shortcuts inside a modal</a> for the
         general version of this pattern.
       </p>
 
@@ -212,18 +212,18 @@ bindKeyboard.add("enter", runSelected, true, "keydown", {
 
       <h2>Related</h2>
       <p>
-        <a href="./modal-shortcuts.html">Keyboard shortcuts inside a modal</a>
-        · <a href="./react-hook.html">React keyboard shortcuts: the useKeybind hook</a>
+        <a href="../modal-shortcuts/">Keyboard shortcuts inside a modal</a>
+        · <a href="../react-hook/">React keyboard shortcuts: the useKeybind hook</a>
       </p>
     </main>
 
     <footer class="recipe-footer">
       <p>
         <a href="/">← Back to the bind-keyboard demo</a> ·
-        <a href="./">More recipes</a>
+        <a href="../">More recipes</a>
       </p>
     </footer>
 
-    <script type="module" src="./recipe.ts"></script>
+    <script type="module" src="../recipe.ts"></script>
   </body>
 </html>

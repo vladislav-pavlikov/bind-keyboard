@@ -10,14 +10,14 @@
     />
     <link
       rel="canonical"
-      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js.html"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js/"
     />
 
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="bind-keyboard" />
     <meta
       property="og:url"
-      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js.html"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js/"
     />
     <meta
       property="og:title"
@@ -32,7 +32,7 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
     />
-    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../../style.css" />
 
     <script type="application/ld+json">
       {
@@ -41,7 +41,7 @@
         "headline": "Migrating from Mousetrap or hotkeys-js",
         "description": "An API mapping for migrating from Mousetrap or hotkeys-js to bind-keyboard — bind/unbind/sequences/scopes equivalents, and the one thing (simultaneous multi-key chords) that has no direct equivalent.",
         "author": { "@type": "Person", "name": "Vladislav Pavlikov" },
-        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js.html"
+        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/migrating-from-mousetrap-hotkeys-js/"
       }
     </script>
   </head>
@@ -69,7 +69,7 @@
         </div>
       </div>
     </header>
-    <nav class="recipe-nav"><a href="./">← All recipes</a></nav>
+    <nav class="recipe-nav"><a href="../">← All recipes</a></nav>
 
     <main class="recipe-article">
       <h1>Migrating from Mousetrap or hotkeys-js</h1>
@@ -149,7 +149,7 @@
           </tr>
           <tr>
             <td>no temporal sequences</td>
-            <td><code>bindKeyboard.add('g,i', fn)</code> — see the <a href="./vim-gmail-sequences.html">sequences recipe</a></td>
+            <td><code>bindKeyboard.add('g,i', fn)</code> — see the <a href="../vim-gmail-sequences/">sequences recipe</a></td>
           </tr>
         </tbody>
       </table>
@@ -174,26 +174,26 @@
         <code>"ctrl+a+s"</code> throws a <code>KeybindError</code> here
         instead of silently mismatching. If you're migrating a binding like
         that, the closest equivalents are a
-        <a href="./vim-gmail-sequences.html">sequence</a> (if pressing them
+        <a href="../vim-gmail-sequences/">sequence</a> (if pressing them
         one after another is acceptable) or two separate bindings for
         whatever the actual intent was.
       </p>
 
       <h2>Related</h2>
       <p>
-        <a href="./vim-gmail-sequences.html">Vim and Gmail-style key sequences</a>
-        · <a href="./react-hook.html">React keyboard shortcuts: the useKeybind hook</a>
-        · <a href="./modal-shortcuts.html">Keyboard shortcuts inside a modal</a>
+        <a href="../vim-gmail-sequences/">Vim and Gmail-style key sequences</a>
+        · <a href="../react-hook/">React keyboard shortcuts: the useKeybind hook</a>
+        · <a href="../modal-shortcuts/">Keyboard shortcuts inside a modal</a>
       </p>
     </main>
 
     <footer class="recipe-footer">
       <p>
         <a href="/">← Back to the bind-keyboard demo</a> ·
-        <a href="./">More recipes</a>
+        <a href="../">More recipes</a>
       </p>
     </footer>
 
-    <script type="module" src="./recipe.ts"></script>
+    <script type="module" src="../recipe.ts"></script>
   </body>
 </html>

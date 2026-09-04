@@ -10,14 +10,14 @@
     />
     <link
       rel="canonical"
-      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/nextjs-ssr.html"
+      href="https://bind-keyboard.vladislav-pavlikov.ru/recipes/nextjs-ssr/"
     />
 
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="bind-keyboard" />
     <meta
       property="og:url"
-      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/nextjs-ssr.html"
+      content="https://bind-keyboard.vladislav-pavlikov.ru/recipes/nextjs-ssr/"
     />
     <meta
       property="og:title"
@@ -32,7 +32,7 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>"
     />
-    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../../style.css" />
 
     <script type="application/ld+json">
       {
@@ -41,7 +41,7 @@
         "headline": "Keyboard Shortcuts in Next.js, SSR-Safe",
         "description": "How to register keyboard shortcuts in Next.js (App Router and Pages Router) without a 'window is not defined' crash during server rendering.",
         "author": { "@type": "Person", "name": "Vladislav Pavlikov" },
-        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/nextjs-ssr.html"
+        "mainEntityOfPage": "https://bind-keyboard.vladislav-pavlikov.ru/recipes/nextjs-ssr/"
       }
     </script>
   </head>
@@ -69,7 +69,7 @@
         </div>
       </div>
     </header>
-    <nav class="recipe-nav"><a href="./">← All recipes</a></nav>
+    <nav class="recipe-nav"><a href="../">← All recipes</a></nav>
 
     <main class="recipe-article">
       <h1>Keyboard shortcuts in Next.js, SSR-safe</h1>
@@ -176,25 +176,25 @@ export default function App({ Component, pageProps }: AppProps) {
         can't. Still, prefer constructing it inside a
         <code>useEffect</code> (or, better, just use
         <code>useKeybind</code> — see the
-        <a href="./react-hook.html">React hook recipe</a>) rather than at
+        <a href="../react-hook/">React hook recipe</a>) rather than at
         module scope, so it's never even attempted server-side in the first
         place.
       </p>
 
       <h2>Related</h2>
       <p>
-        <a href="./react-hook.html">React keyboard shortcuts: the useKeybind hook</a>
-        · <a href="./command-palette.html">Building a Cmd/Ctrl+K command palette</a>
+        <a href="../react-hook/">React keyboard shortcuts: the useKeybind hook</a>
+        · <a href="../command-palette/">Building a Cmd/Ctrl+K command palette</a>
       </p>
     </main>
 
     <footer class="recipe-footer">
       <p>
         <a href="/">← Back to the bind-keyboard demo</a> ·
-        <a href="./">More recipes</a>
+        <a href="../">More recipes</a>
       </p>
     </footer>
 
-    <script type="module" src="./recipe.ts"></script>
+    <script type="module" src="../recipe.ts"></script>
   </body>
 </html>
