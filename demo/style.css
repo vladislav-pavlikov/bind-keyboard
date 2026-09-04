@@ -1040,6 +1040,14 @@ kbd {
   padding: 16px 20px;
 }
 
+/* A recipe's .code-sample-header only ever holds the Copy button (the
+   surrounding prose already has its own heading) — .code-sample-header's
+   base space-between rule needs an actual second child to push the button
+   right; without one it'd sit flush left instead. */
+.recipe-article .code-sample-header {
+  justify-content: flex-end;
+}
+
 .recipe-article a {
   color: var(--accent);
 }

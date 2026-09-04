@@ -97,6 +97,15 @@
         1000ms by default):
       </p>
       <div class="code-sample">
+        <div class="code-sample-header">
+          <button
+            type="button"
+            class="copy-button"
+            data-copy-target="basic-example"
+          >
+            Copy
+          </button>
+        </div>
         <div class="code-window">
           <div class="code-window-titlebar">
             <span class="dot dot-red"></span>
@@ -113,13 +122,6 @@ const bindKeyboard = new BindKeyboard({ sequenceTimeout: 1000 });
 bindKeyboard.add("g,g", () => window.scrollTo({ top: 0 }));
 bindKeyboard.add("g,i", goToInbox);</code></pre>
         </div>
-        <button
-          type="button"
-          class="copy-button"
-          data-copy-target="basic-example"
-        >
-          Copy
-        </button>
       </div>
 
       <h2>A literal comma is unambiguous</h2>
@@ -150,6 +152,15 @@ bindKeyboard.add("g,i", goToInbox);</code></pre>
         -only warning naming both, rather than guessing which one you meant:
       </p>
       <div class="code-sample">
+        <div class="code-sample-header">
+          <button
+            type="button"
+            class="copy-button"
+            data-copy-target="conflict-example"
+          >
+            Copy
+          </button>
+        </div>
         <div class="code-window">
           <div class="code-window-titlebar">
             <span class="dot dot-red"></span>
@@ -164,13 +175,6 @@ bindKeyboard.add("g,o,x", goToOverviewExtended);
 // Pressing g, then o: neither fires yet (ambiguous).
 // Pressing x next: "g,o,x" is no longer ambiguous — it fires.</code></pre>
         </div>
-        <button
-          type="button"
-          class="copy-button"
-          data-copy-target="conflict-example"
-        >
-          Copy
-        </button>
       </div>
 
       <h2>Letting a plain binding wait to see if it's part of a sequence</h2>
@@ -186,6 +190,15 @@ bindKeyboard.add("g,o,x", goToOverviewExtended);
         that's known, not necessarily the full timeout):
       </p>
       <div class="code-sample">
+        <div class="code-sample-header">
+          <button
+            type="button"
+            class="copy-button"
+            data-copy-target="defer-example"
+          >
+            Copy
+          </button>
+        </div>
         <div class="code-window">
           <div class="code-window-titlebar">
             <span class="dot dot-red"></span>
@@ -200,13 +213,6 @@ bindKeyboard.add("g,o,x", goToOverviewExtended);
 });
 bindKeyboard.add("g,i", goToInbox);</code></pre>
         </div>
-        <button
-          type="button"
-          class="copy-button"
-          data-copy-target="defer-example"
-        >
-          Copy
-        </button>
       </div>
 
       <h2>Scoped and input-safe like any other binding</h2>

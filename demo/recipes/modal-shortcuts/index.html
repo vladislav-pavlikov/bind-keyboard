@@ -93,6 +93,15 @@
 
       <h2>Scoping a binding to the modal</h2>
       <div class="code-sample">
+        <div class="code-sample-header">
+          <button
+            type="button"
+            class="copy-button"
+            data-copy-target="scope-example"
+          >
+            Copy
+          </button>
+        </div>
         <div class="code-window">
           <div class="code-window-titlebar">
             <span class="dot dot-red"></span>
@@ -123,13 +132,6 @@ function closeModal() {
   bindKeyboard.disableScope("modal");
 }</code></pre>
         </div>
-        <button
-          type="button"
-          class="copy-button"
-          data-copy-target="scope-example"
-        >
-          Copy
-        </button>
       </div>
       <p>
         A scoped binding only fires while its scope is active — Escape and Enter
@@ -146,6 +148,15 @@ function closeModal() {
         time, without either registration fighting the other:
       </p>
       <div class="code-sample">
+        <div class="code-sample-header">
+          <button
+            type="button"
+            class="copy-button"
+            data-copy-target="unscoped-example"
+          >
+            Copy
+          </button>
+        </div>
         <div class="code-window">
           <div class="code-window-titlebar">
             <span class="dot dot-red"></span>
@@ -157,13 +168,6 @@ function closeModal() {
             class="code-window-body code-window-body--numbered"
           ><code id="unscoped-example">bindKeyboard.add("escape", clearSearchField); // unscoped — the fallback</code></pre>
         </div>
-        <button
-          type="button"
-          class="copy-button"
-          data-copy-target="unscoped-example"
-        >
-          Copy
-        </button>
       </div>
 
       <h2>Multiple modals: a shared "is anything open" flag</h2>

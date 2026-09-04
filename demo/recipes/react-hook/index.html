@@ -88,6 +88,15 @@
         so adding this never pulls React into a non-React project.
       </p>
       <div class="code-sample">
+        <div class="code-sample-header">
+          <button
+            type="button"
+            class="copy-button"
+            data-copy-target="install-cmd"
+          >
+            Copy
+          </button>
+        </div>
         <div class="code-window">
           <div class="code-window-titlebar">
             <span class="dot dot-red"></span>
@@ -99,13 +108,6 @@
             class="code-window-body code-window-body--terminal"
           ><code id="install-cmd">npm install bind-keyboard</code></pre>
         </div>
-        <button
-          type="button"
-          class="copy-button"
-          data-copy-target="install-cmd"
-        >
-          Copy
-        </button>
       </div>
 
       <h2>Basic usage</h2>
@@ -116,6 +118,15 @@
         leaks a listener past its own lifetime.
       </p>
       <div class="code-sample">
+        <div class="code-sample-header">
+          <button
+            type="button"
+            class="copy-button"
+            data-copy-target="basic-example"
+          >
+            Copy
+          </button>
+        </div>
         <div class="code-window">
           <div class="code-window-titlebar">
             <span class="dot dot-red"></span>
@@ -136,13 +147,6 @@ function SaveButton({ onSave }: { onSave: () => void }) {
   return &lt;button onClick={onSave}&gt;Save&lt;/button&gt;;
 }</code></pre>
         </div>
-        <button
-          type="button"
-          class="copy-button"
-          data-copy-target="basic-example"
-        >
-          Copy
-        </button>
       </div>
 
       <h2>No stale closures, no unnecessary re-subscribing</h2>
@@ -166,6 +170,15 @@ function SaveButton({ onSave }: { onSave: () => void }) {
         e.g. only while a specific tab is active:
       </p>
       <div class="code-sample">
+        <div class="code-sample-header">
+          <button
+            type="button"
+            class="copy-button"
+            data-copy-target="enabled-example"
+          >
+            Copy
+          </button>
+        </div>
         <div class="code-window">
           <div class="code-window-titlebar">
             <span class="dot dot-red"></span>
@@ -179,13 +192,6 @@ function SaveButton({ onSave }: { onSave: () => void }) {
   enabled: isActiveTab,
 });</code></pre>
         </div>
-        <button
-          type="button"
-          class="copy-button"
-          data-copy-target="enabled-example"
-        >
-          Copy
-        </button>
       </div>
 
       <h2>Everything <code>.add()</code> accepts, plus a few more</h2>
