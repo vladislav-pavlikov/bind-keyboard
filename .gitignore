@@ -22,6 +22,9 @@ demo/public/llms-full.txt
 .env
 coverage
 .superpowers
+# Scratch drop zone for files handed to Claude mid-session (e.g. images to
+# place elsewhere in the repo) — never meant to be committed as-is.
+/TMP
 
 # Editor directories and files
 .vscode/*
