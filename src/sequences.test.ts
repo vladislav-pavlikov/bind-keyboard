@@ -177,7 +177,7 @@ describe("Sequences", () => {
       else sequenceCallback();
     });
 
-    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "a", ctrlKey: true }));
     expect(plainCallback).toHaveBeenCalledTimes(1);
 
     sequenced.add("g,o", sequenceCallback, true, "keydown");

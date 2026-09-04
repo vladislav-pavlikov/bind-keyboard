@@ -21,7 +21,7 @@ describe("Keybind Library Tests", () => {
     expect(bindKeyboard.getKeybind("Ctrl+A")).toEqual({
       keyCombination: "ctrl + a",
       callback,
-      eventType: "keypress",
+      eventType: "keydown",
       preventRepeat: true,
       allowInInputElements: false,
       deferForSequence: false,
@@ -36,7 +36,7 @@ describe("Keybind Library Tests", () => {
     const callback = jest.fn();
     bindKeyboard.add("ctrl+a", callback);
 
-    const event = new KeyboardEvent("keypress", { key: "a", ctrlKey: true });
+    const event = new KeyboardEvent("keydown", { key: "a", ctrlKey: true });
     dispatchEvent(event);
 
     expect(callback).toHaveBeenCalled();
@@ -48,7 +48,7 @@ describe("Keybind Library Tests", () => {
     bindKeyboard.add("ctrl+a", callbackNotToHaveBeenCalled);
     bindKeyboard.add("ctrl+a", callbackToHaveBeenCalled);
 
-    const event = new KeyboardEvent("keypress", { key: "a", ctrlKey: true });
+    const event = new KeyboardEvent("keydown", { key: "a", ctrlKey: true });
     dispatchEvent(event);
 
     expect(callbackNotToHaveBeenCalled).not.toHaveBeenCalled();
@@ -59,7 +59,7 @@ describe("Keybind Library Tests", () => {
     bindKeyboard.add("ctrl+a", jest.fn());
 
     expect(() =>
-      bindKeyboard.add("ctrl+a", jest.fn(), true, "keypress", {
+      bindKeyboard.add("ctrl+a", jest.fn(), true, "keydown", {
         override: false,
       }),
     ).toThrow(KeybindError);
@@ -68,7 +68,7 @@ describe("Keybind Library Tests", () => {
   it("should not leave partial bindings when add() throws on an array with override: false", () => {
     bindKeyboard.add("ctrl+b", jest.fn());
     expect(() =>
-      bindKeyboard.add(["ctrl+a", "ctrl+b"], jest.fn(), true, "keypress", {
+      bindKeyboard.add(["ctrl+a", "ctrl+b"], jest.fn(), true, "keydown", {
         override: false,
       }),
     ).toThrow(KeybindError);
@@ -394,7 +394,7 @@ describe("Keybind Library Tests", () => {
       const callback = jest.fn();
       bindKeyboard.add("cmdOrCtrl+a", callback);
 
-      dispatchEvent(new KeyboardEvent("keypress", { key: "a", metaKey: true }));
+      dispatchEvent(new KeyboardEvent("keydown", { key: "a", metaKey: true }));
 
       expect(callback).toHaveBeenCalled();
     } finally {
@@ -454,14 +454,14 @@ describe("Keybind Library Tests", () => {
 
     expect(entries).toHaveLength(2);
 
-    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
-    dispatchEvent(new KeyboardEvent("keypress", { key: "b", ctrlKey: true }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "a", ctrlKey: true }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "b", ctrlKey: true }));
 
     expect(callback).toHaveBeenCalledTimes(2);
   });
 
   it("should store an optional description on the binding entry", () => {
-    bindKeyboard.add("ctrl+a", jest.fn(), true, "keypress", {
+    bindKeyboard.add("ctrl+a", jest.fn(), true, "keydown", {
       description: "Select all",
     });
 
@@ -569,7 +569,7 @@ describe("Keybind Library Tests", () => {
     document.body.appendChild(input);
     input.focus();
 
-    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "a", ctrlKey: true }));
     expect(callback).toHaveBeenCalled();
 
     input.remove();
@@ -650,17 +650,17 @@ describe("Keybind Library Tests", () => {
 
   it("should look up and remove a specific scope's binding via getKeybind/remove without touching the unscoped one", () => {
     const scoped = new BindKeyboard();
-    scoped.add("ctrl+k", jest.fn(), true, "keypress");
-    scoped.add("ctrl+k", jest.fn(), true, "keypress", { scope: "modal" });
+    scoped.add("ctrl+k", jest.fn(), true, "keydown");
+    scoped.add("ctrl+k", jest.fn(), true, "keydown", { scope: "modal" });
 
     expect(scoped.getKeybind("ctrl+k")).toBeDefined();
-    expect(scoped.getKeybind("ctrl+k", "keypress", "modal")).toBeDefined();
+    expect(scoped.getKeybind("ctrl+k", "keydown", "modal")).toBeDefined();
     expect(
-      scoped.getKeybind("ctrl+k", "keypress", "other-scope"),
+      scoped.getKeybind("ctrl+k", "keydown", "other-scope"),
     ).not.toBeDefined();
 
-    expect(scoped.remove("ctrl+k", "keypress", "modal")).toBe(true);
-    expect(scoped.getKeybind("ctrl+k", "keypress", "modal")).not.toBeDefined();
+    expect(scoped.remove("ctrl+k", "keydown", "modal")).toBe(true);
+    expect(scoped.getKeybind("ctrl+k", "keydown", "modal")).not.toBeDefined();
     expect(scoped.getKeybind("ctrl+k")).toBeDefined();
 
     scoped.destroy();
@@ -730,10 +730,10 @@ describe("Keybind Library Tests", () => {
     const debugKeyboard = new BindKeyboard({ debug: 1 });
     debugKeyboard.add("ctrl+a", jest.fn());
 
-    dispatchEvent(new KeyboardEvent("keypress", { key: "z" }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "z" }));
     expect(logSpy).not.toHaveBeenCalled();
 
-    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "a", ctrlKey: true }));
     expect(logSpy).toHaveBeenCalled();
 
     logSpy.mockRestore();
@@ -797,12 +797,12 @@ describe("Keybind Library Tests", () => {
     aliased.add("ctrl+a", callback);
 
     aliased.startListners();
-    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "a", ctrlKey: true }));
     expect(callback).toHaveBeenCalled();
 
     aliased.stopListners();
     callback.mockClear();
-    dispatchEvent(new KeyboardEvent("keypress", { key: "a", ctrlKey: true }));
+    dispatchEvent(new KeyboardEvent("keydown", { key: "a", ctrlKey: true }));
     expect(callback).not.toHaveBeenCalled();
   });
 });

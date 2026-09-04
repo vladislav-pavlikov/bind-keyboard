@@ -508,13 +508,13 @@ class BindKeyboard {
    * Gets the binding for a specific key combination, event type, and scope.
    *
    * @param {Types.KeyCombination | Types.KeyCombinationConstruct} keyCombination - The key combination (or comma-separated sequence, e.g. "g,o") to look up.
-   * @param {Types.EventType} [type='keypress'] - The type of keyboard event to search (optional, default is 'keypress').
+   * @param {Types.EventType} [type='keydown'] - The type of keyboard event to search (optional, default is 'keydown').
    * @param {string} [scope=undefined] - Look up the binding registered for this specific scope, rather than the unscoped (global) one. Doesn't consider which scopes are currently active — see `.add()`'s `scope` option.
    * @returns {Classes.KeybindEntry | undefined} The key binding entry or undefined if not found.
    */
   getKeybind = (
     keyCombination: Types.KeyCombination | Types.KeyCombinationConstruct,
-    type: Types.EventType = "keypress",
+    type: Types.EventType = "keydown",
     scope?: string,
   ): Classes.KeybindEntry | undefined => {
     const { store, key } = this.#resolveTarget(keyCombination, type);
@@ -543,7 +543,7 @@ class BindKeyboard {
    * @param {Types.KeyCombination | Types.KeyCombinationConstruct | Array<Types.KeyCombination | Types.KeyCombinationConstruct>} keyCombination - The key combination(s) to bind. A string containing a comma (e.g. "g,o") is a sequence — its callback only fires once every step is pressed in order, within `sequenceTimeout` of each other.
    * @param {Types.KeybindCallback} callback - The callback function to execute when the key combination is pressed.
    * @param {boolean} [preventRepeat=true] - Whether to prevent repeated key press events when holding down the key (optional, default is true). Not meaningful for a sequence.
-   * @param {Types.EventType} [type='keypress'] - The type of keyboard event to bind (optional, default is 'keypress').
+   * @param {Types.EventType} [type='keydown'] - The type of keyboard event to bind (optional, default is 'keydown').
    * @param {Types.AddBindingOptions} [options={}] - Extra, optional behavior for this binding (allowInInputElements, override, description, scope).
    * @returns {Classes.KeybindEntry[]} The binding entries that were created, one per key combination.
    * @throws {Classes.KeybindError} When an invalid EventType is provided, or when a binding already exists for the same combination *and* scope and `options.override` is `false`.
@@ -555,7 +555,7 @@ class BindKeyboard {
       | Array<Types.KeyCombination | Types.KeyCombinationConstruct>,
     callback: Types.KeybindCallback,
     preventRepeat = true,
-    type: Types.EventType = "keypress",
+    type: Types.EventType = "keydown",
     options: Types.AddBindingOptions = {},
   ): Classes.KeybindEntry[] => {
     assertValidEventType(type);
@@ -650,14 +650,14 @@ class BindKeyboard {
    * type, and scope.
    *
    * @param {Types.KeyCombination | Types.KeyCombinationConstruct} keyCombination - The key combination (or comma-separated sequence, e.g. "g,o") to unbind.
-   * @param {Types.EventType} [type='keypress'] - The type of keyboard event to unbind (optional, default is 'keypress').
+   * @param {Types.EventType} [type='keydown'] - The type of keyboard event to unbind (optional, default is 'keydown').
    * @param {string} [scope=undefined] - Remove the binding registered for this specific scope, rather than the unscoped (global) one.
    * @returns {boolean} Whether a binding was found and removed.
    * @throws {Classes.KeybindError} When an invalid EventType is provided.
    */
   remove = (
     keyCombination: Types.KeyCombination | Types.KeyCombinationConstruct,
-    type: Types.EventType = "keypress",
+    type: Types.EventType = "keydown",
     scope?: string,
   ): boolean => {
     assertValidEventType(type);

@@ -60,7 +60,7 @@ export const useKeybind = (
 
   const {
     preventRepeat = true,
-    type = "keypress",
+    type = "keydown",
     enabled = true,
     target,
     keyMode,

@@ -96,7 +96,7 @@ new BindKeyboard({
 
 ## API
 
-### `.add(keyCombination, callback, preventRepeat = true, type = "keypress", options = {})`
+### `.add(keyCombination, callback, preventRepeat = true, type = "keydown", options = {})`
 
 Registers a binding. `keyCombination` is a string (`"ctrl+a"`), a construct object (`{ key: "a", ctrlKey: true }`), a comma-separated sequence string (`"g,o"` — see [Sequences](#sequences) below), or an array mixing any of those to bind the same callback to several combinations at once. Returns the created `KeybindEntry[]` (one per combination).
 
@@ -116,13 +116,15 @@ bindKeyboard.add("ctrl+z", undo, true, "keydown", {
 
 Throws `KeybindError` for an invalid `type`, or when `override: false` and a binding already exists for that combination _and scope_ (see [Errors and types](#errors-and-types) below) — a binding can coexist with another one registered for the same combination under a different scope without conflicting.
 
+`type` is `"keydown"` (the default), `"keyup"`, or `"keypress"` — `"keypress"` is still supported but [deprecated by the spec itself](https://developer.mozilla.org/en-US/docs/Web/API/Element/keypress_event) (it never fires for non-character keys like arrows, function keys, or Escape), so there's rarely a reason to pass it explicitly.
+
 `type: "keyup"` ignores `ctrlKey`/`shiftKey`/`altKey`/`metaKey` (and `cmdOrCtrl`) entirely — `add("d", cb, true, "keyup")` fires on releasing "d" no matter what other modifiers happen to still be held at that instant. This is what makes continuous-hold tracking (`.add("d", () => (held = true), true, "keydown"); .add("d", () => (held = false), true, "keyup")`) reliable even while also using a modifier-based binding on the same key (e.g. a `"shift+d"` dash while still holding `"d"` to move) — a release is a release, regardless of what else is held. `"keydown"`/`"keypress"` are unaffected by this — modifiers still fully matter there.
 
-### `.remove(keyCombination, type = "keypress", scope = undefined)`
+### `.remove(keyCombination, type = "keydown", scope = undefined)`
 
 Removes a single binding. Returns `true` if a binding was found and removed. Pass `scope` to remove a specific scoped binding instead of the unscoped (global) one.
 
-### `.getKeybind(keyCombination, type = "keypress", scope = undefined)`
+### `.getKeybind(keyCombination, type = "keydown", scope = undefined)`
 
 Looks up a single binding, returning its `KeybindEntry` or `undefined`. Pass `scope` to look up a specific scoped binding instead of the unscoped (global) one.
 
@@ -257,7 +259,7 @@ function SearchBox() {
 | Option               | Type                         | Default      | Description                                                         |
 | -------------------- | ---------------------------- | ------------ | ------------------------------------------------------------------- |
 | `preventRepeat`      | `boolean`                    | `true`       | `.add()`'s own `preventRepeat` argument.                            |
-| `type`               | `EventType`                  | `"keypress"` | `.add()`'s own `type` argument.                                     |
+| `type`               | `EventType`                  | `"keydown"`  | `.add()`'s own `type` argument.                                     |
 | `enabled`            | `boolean`                    | `true`       | Set `false` to unregister without unmounting the component.         |
 | `target`             | `EventTarget \| HTMLElement` | `globalThis` | Passed straight through to this call's own `BindKeyboard` instance. |
 | `keyMode`            | `"key" \| "code"`            | `"key"`      | Passed straight through to this call's own `BindKeyboard` instance. |
@@ -274,7 +276,7 @@ Each `useKeybind()` call owns an independent `BindKeyboard` instance (and so its
 import { BindKeyboard, KeybindError } from "bind-keyboard";
 
 try {
-  bindKeyboard.add("ctrl+a", callback, true, "keypress", { override: false });
+  bindKeyboard.add("ctrl+a", callback, true, "keydown", { override: false });
 } catch (error) {
   if (error instanceof KeybindError) {
     // a binding for "ctrl + a" already existed
